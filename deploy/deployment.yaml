@@ -51,6 +51,9 @@ spec:
               memory: 256Mi
           securityContext:
             runAsNonRoot: true
+            # node:22-slim 의 'node' 유저는 UID/GID 1000. 비루트 검증을 위해 숫자로 지정.
+            runAsUser: 1000
+            runAsGroup: 1000
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
             capabilities:
