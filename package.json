@@ -1,0 +1,26 @@
+{
+  "name": "gimpo-velero-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Velero 백업/복구 대시보드 (Node + Fastify 백엔드, Vue3 + Element Plus 프론트)",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "npm -w backend run dev",
+    "dev:frontend": "npm -w frontend run dev",
+    "build": "npm -w frontend run build && npm -w backend run build",
+    "build:frontend": "npm -w frontend run build",
+    "build:backend": "npm -w backend run build",
+    "typecheck": "npm -w backend run typecheck && npm -w frontend run typecheck",
+    "start": "npm -w backend run start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gimpo-velero-dashboard
+  namespace: velero
+  labels:
+    app: gimpo-velero-dashboard
+spec:
+  type: ClusterIP
+  selector:
+    app: gimpo-velero-dashboard
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

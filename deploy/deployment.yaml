@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gimpo-velero-dashboard
+  namespace: velero
+  labels:
+    app: gimpo-velero-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gimpo-velero-dashboard
+  template:
+    metadata:
+      labels:
+        app: gimpo-velero-dashboard
+    spec:
+      serviceAccountName: gimpo-velero-dashboard
+      containers:
+        - name: dashboard
+          # 로컬 빌드 이미지. 레지스트리 사용 시 태그를 교체하고 imagePullPolicy 조정.
+          image: gimpo-velero-dashboard:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: VELERO_NAMESPACE
+              value: "velero"
+            - name: STATIC_DIR
+              value: "/app/public"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
