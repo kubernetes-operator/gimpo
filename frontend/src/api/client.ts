@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
 
-export const http = axios.create({ baseURL: '/api', timeout: 60000 });
+// base(/velero/) 아래에서 서빙되면 API 도 /velero/api 로 호출해야 게이트웨이가 매칭한다.
+// BASE_URL 은 끝에 슬래시가 있으므로 그대로 'api' 를 붙인다. (dev 는 '/' + 'api' = '/api')
+export const http = axios.create({ baseURL: `${import.meta.env.BASE_URL}api`, timeout: 60000 });
 
 http.interceptors.response.use(
   (res) => res,

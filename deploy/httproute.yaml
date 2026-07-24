@@ -1,0 +1,49 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: gimpo-velero-dashboard-route
+  namespace: velero
+spec:
+  hostnames:
+    - test2.studiobasa.com
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: gateway
+      namespace: default
+      sectionName: http
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: gateway
+      namespace: default
+      sectionName: https
+  rules:
+    # /velero → /velero/ 로 302 (트레일링 슬래시 보정: 서브패스 base 자산 로딩용)
+    - matches:
+        - path:
+            type: Exact
+            value: /velero
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /velero/
+            statusCode: 302
+    # /velero/* → 프리픽스 제거 후 대시보드 서비스로 전달
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /velero
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: gimpo-velero-dashboard
+          port: 80
+          weight: 1

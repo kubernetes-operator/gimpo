@@ -19,7 +19,7 @@ spec:
       containers:
         - name: dashboard
           # 클러스터 내부 레지스트리(다른 앱과 동일 관행). 태그를 올릴 때마다 갱신한다.
-          image: registry.local.cloud:5000/gimpo:0.1.0
+          image: registry.local.cloud:5000/gimpo:0.2.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000

@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
-  history: createWebHistory(),
+  // 서브패스 서빙 대응: 빌드 시 주입된 base(예: /velero/)를 라우터 base 로 사용
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', redirect: '/overview' },
     { path: '/overview', name: 'overview', component: () => import('./views/OverviewView.vue') },
