@@ -18,9 +18,11 @@ spec:
       serviceAccountName: gimpo-velero-dashboard
       containers:
         - name: dashboard
-          # 로컬 빌드 이미지. 레지스트리 사용 시 태그를 교체하고 imagePullPolicy 조정.
-          image: gimpo-velero-dashboard:dev
-          imagePullPolicy: IfNotPresent
+          # CI(.github/workflows/build-and-push.yml)가 GHCR 로 푸시하는 이미지.
+          # 로컬 클러스터(kind 등) 테스트 시엔 gimpo-velero-dashboard:dev 로 바꾸고
+          # imagePullPolicy: IfNotPresent 로 조정한다.
+          image: ghcr.io/kubernetes-operator/gimpo:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
           env:

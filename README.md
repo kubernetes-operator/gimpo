@@ -64,6 +64,29 @@ kubectl -n velero port-forward svc/gimpo-velero-dashboard 8080:80
 `deploy/rbac.yaml` 의 ClusterRole 은 `velero.io` 전체와 네임스페이스/디스커버리 read 권한만 가진다.
 실제 백업/복구 대상 리소스에 대한 권한은 **Velero 컨트롤러**가 이미 보유하므로 대시보드 SA 에는 부여하지 않는다(최소 권한).
 
+## GitOps (ArgoCD) 배포
+
+이 저장소는 ArgoCD 로 배포하도록 구성돼 있다.
+
+1. **이미지 빌드/푸시(CI)**: `main` 에 push 되면 `.github/workflows/build-and-push.yml` 가
+   `ghcr.io/kubernetes-operator/gimpo` 로 이미지를 빌드·푸시한다(`latest` + `sha-<commit>` 태그).
+   - GHCR 패키지는 **public** 으로 설정하거나, private 이면 `velero` 네임스페이스에
+     `imagePullSecret` 을 만들어 `deploy/deployment.yaml` 에 연결한다.
+2. **매니페스트 동기화(ArgoCD)**: `deploy/argocd/application.yaml` 의 Application 이
+   저장소의 `deploy/`(kustomize)를 `velero` 네임스페이스로 자동 동기화한다.
+
+```bash
+# ArgoCD 에 Application 등록 (한 번만)
+kubectl apply -f deploy/argocd/application.yaml
+```
+
+Application 은 `targetRevision: main` 을 추적한다. 이 브랜치를 `main` 에 병합하면 CI 가
+이미지를 만들고 ArgoCD 가 매니페스트를 동기화한다. 병합 전 이 브랜치를 바로 배포해 보려면
+Application 의 `targetRevision` 을 브랜치명으로 바꾼다.
+
+> 클러스터에 Application 을 apply 하거나 `main` 병합으로 실제 배포가 시작되는 것은
+> 되돌리기 어려운 작업이므로 승인 후 진행한다.
+
 ## 안전/정책
 
 - 실제 백업 생성·복구·삭제 등 **되돌리기 어려운 쓰기 작업은 사용자 승인 후** 수행한다.
