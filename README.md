@@ -68,10 +68,14 @@ kubectl -n velero port-forward svc/gimpo-velero-dashboard 8080:80
 
 이 저장소는 ArgoCD 로 배포하도록 구성돼 있다.
 
-1. **이미지 빌드/푸시(CI)**: `main` 에 push 되면 `.github/workflows/build-and-push.yml` 가
-   `ghcr.io/kubernetes-operator/gimpo` 로 이미지를 빌드·푸시한다(`latest` + `sha-<commit>` 태그).
-   - GHCR 패키지는 **public** 으로 설정하거나, private 이면 `velero` 네임스페이스에
-     `imagePullSecret` 을 만들어 `deploy/deployment.yaml` 에 연결한다.
+1. **이미지 빌드/푸시**: 클러스터 관행에 따라 내부 레지스트리 `registry.local.cloud:5000/gimpo`
+   를 사용한다. `.github/workflows/build-and-push.yml`(내부망 접근 가능한 self-hosted 러너)
+   또는 아래처럼 수동으로 빌드·푸시한다.
+
+   ```bash
+   docker build -t registry.local.cloud:5000/gimpo:0.1.0 .
+   docker push registry.local.cloud:5000/gimpo:0.1.0
+   ```
 2. **매니페스트 동기화(ArgoCD)**: `deploy/argocd/application.yaml` 의 Application 이
    저장소의 `deploy/`(kustomize)를 `velero` 네임스페이스로 자동 동기화한다.
 
