@@ -242,7 +242,14 @@ nodeAgent:
   resizePolicy: []
   resources: {}
   runtimeClassName: ""
-  tolerations: []
+  # control-plane 노드 파드 볼륨도 백업하도록 허용. GPU 노드(nvidia.com/gpu taint)의 node-agent 유지용도 포함.
+  tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
   updateStrategy: {}
   useScratchEmptyDir: true
 nodeSelector: {}

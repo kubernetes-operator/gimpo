@@ -115,6 +115,6 @@ kubectl -n velero get backupstoragelocations.velero.io
 - **MinIO 저장소 구조**: 2노드×2드라이브(EC) 4개 PVC 가 모두 같은 NFS NAS(`nfs-nas-sc-main`, 사용률 86%)에 있다.
   같은 NAS 에 4중으로 쓰고 listing 이 느려지는 구조라 데이터가 쌓이면 같은 증상이 재발할 수 있다.
   로컬 디스크 기반 MinIO 또는 단일 드라이브 구성으로의 이전을 검토한다.
-- **control-plane 노드 node-agent 미배치**: taint 로 node-agent 가 control-plane 에 뜨지 않아 그 노드의 파드 볼륨
-  (예: promtail `positions`)은 백업되지 않고 백업이 `PartiallyFailed` 가 된다. `nodeAgent.tolerations` 에
-  control-plane toleration 을 추가하거나, 해당 볼륨을 `backup.velero.io/backup-volumes-excludes` 로 제외한다.
+- ~~control-plane 노드 node-agent 미배치~~ → **해결**: `nodeAgent.tolerations` 에 control-plane·`nvidia.com/gpu`
+  toleration 추가(클러스터 DaemonSet 에도 적용). GPU toleration 은 필수다 — 없으면 DaemonSet 재시작 시 GPU 노드
+  (ollama 등)에서 node-agent 가 빠져 그 노드 볼륨이 백업되지 않는다.
