@@ -1,0 +1,319 @@
+# Velero Helm values (chart: velero v12.0.1 / appVersion 1.18.0)
+#
+# 현재 운영 릴리스에서 추출 후 VSL 버그를 수정한 버전.
+# 수정: configuration.volumeSnapshotLocation 의 "빈 VSL"(name: "", config 없음, default: true)
+#       항목을 제거했다. VSL 은 BSL 과 달리 default 필드를 지원하지 않아,
+#       aws VSL 이 2개가 되면서 모든 백업이 FailedValidation 되던 문제를 유발했다.
+#       설정이 완비된 volume-backup 하나만 남기면 Velero 가 자동 선택한다.
+#
+# 수정2: schedules.*.template.snapshotVolumes 를 false 로 변경.
+#        MinIO 환경에는 볼륨 스냅샷 제공자가 없고(aws VSL 에 s3Url 등 잘못된 키 → 플러그인 에러),
+#        볼륨은 defaultVolumesToFsBackup(kopia 파일 백업)으로만 백업한다.
+#
+# 주의: 이 values 는 아래 사전 준비가 갖춰진 클러스터를 전제로 한다.
+#   1) 네임스페이스 velero
+#   2) 시크릿 velero-minio-credentials (key: cloud) — MinIO/S3 자격증명
+#   3) MinIO(또는 S3) 가 http://minio:9000 로 접근 가능하고 아래 버킷 존재:
+#      osc-backup, daily-backup, weekly-backup, monthly-backup
+
+affinity: {}
+annotations: {}
+backupsEnabled: true
+cleanUpCRDs: false
+configMaps: {}
+configuration:
+  backupStorageLocation:
+  - accessMode: ReadWrite
+    annotations: {}
+    bucket: osc-backup
+    caCert: null
+    config:
+      region: Prod
+      s3ForcePathStyle: true
+      s3Url: http://minio:9000
+    credential:
+      key: cloud
+      name: velero-minio-credentials
+    default: true
+    name: null
+    prefix: null
+    provider: aws
+    validationFrequency: null
+  - accessMode: ReadWrite
+    bucket: daily-backup
+    caCert: null
+    config:
+      region: Prod
+      s3ForcePathStyle: true
+      s3Url: http://minio:9000
+    credential:
+      key: cloud
+      name: velero-minio-credentials
+    default: false
+    name: daily-backup
+    prefix: null
+    provider: aws
+    validationFrequency: null
+  - accessMode: ReadWrite
+    bucket: weekly-backup
+    caCert: null
+    config:
+      region: Prod
+      s3ForcePathStyle: true
+      s3Url: http://minio:9000
+    credential:
+      key: cloud
+      name: velero-minio-credentials
+    default: false
+    name: weekly-backup
+    prefix: null
+    provider: aws
+    validationFrequency: null
+  - accessMode: ReadWrite
+    bucket: monthly-backup
+    caCert: null
+    config:
+      region: Prod
+      s3ForcePathStyle: true
+      s3Url: http://minio:9000
+    credential:
+      key: cloud
+      name: velero-minio-credentials
+    default: false
+    name: monthly-backup
+    prefix: null
+    provider: aws
+    validationFrequency: null
+  backupSyncPeriod: null
+  clientBurst: null
+  clientPageSize: null
+  clientQPS: null
+  dataMoverPrepareTimeout: null
+  defaultBackupStorageLocation: null
+  defaultBackupTTL: null
+  defaultItemOperationTimeout: null
+  defaultRepoMaintainFrequency: null
+  defaultSnapshotMoveData: null
+  # VSL 이 1개뿐이면 지정 불필요. 향후 VSL 을 여러 개 둘 경우에만 아래를 활성화한다.
+  # defaultVolumeSnapshotLocations: "aws:volume-backup"
+  defaultVolumeSnapshotLocations: null
+  defaultVolumesToFsBackup: null
+  disableControllers: null
+  disableInformerCache: false
+  extraArgs: []
+  extraEnvVars: []
+  features: null
+  fsBackupTimeout: null
+  garbageCollectionFrequency: null
+  itemBlockWorkerCount: null
+  logFormat: null
+  logLevel: null
+  metricsAddress: null
+  namespace: null
+  pluginDir: null
+  profilerAddress: null
+  repositoryMaintenanceJob:
+    repositoryConfigData:
+      global:
+        keepLatestMaintenanceJobs: 3
+      name: velero-repo-maintenance
+      repositories: {}
+  restoreOnlyMode: null
+  restoreResourcePriorities: null
+  storeValidationFrequency: null
+  terminatingResourceTimeout: null
+  uploaderType: null
+  # [수정] 빈 VSL(name: "", default: true) 항목 제거 — 설정 완비된 volume-backup 하나만 유지
+  volumeSnapshotLocation:
+  - config:
+      region: Prod
+      s3ForcePathStyle: true
+      s3Url: http://minio:9000
+    credential:
+      key: cloud
+      name: velero-minio-credentials
+    name: volume-backup
+    provider: aws
+containerSecurityContext: {}
+credentials:
+  existingSecret: null
+  extraEnvVars: {}
+  extraSecretRef: ""
+  name: null
+  secretContents: {}
+  useSecret: true
+deployNodeAgent: true
+dnsConfig: {}
+dnsPolicy: ClusterFirst
+extraObjects: []
+extraVolumeMounts: []
+extraVolumes: []
+fullnameOverride: ""
+hostAliases: []
+image:
+  imagePullSecrets: []
+  pullPolicy: IfNotPresent
+  repository: docker.io/velero/velero
+  tag: v1.18.0
+initContainers:
+- image: velero/velero-plugin-for-aws:v1.13.1
+  imagePullPolicy: IfNotPresent
+  name: velero-plugin-for-aws
+  volumeMounts:
+  - mountPath: /target
+    name: plugins
+kubectl:
+  annotations: {}
+  containerSecurityContext: {}
+  extraVolumeMounts: []
+  extraVolumes: []
+  image:
+    repository: registry.k8s.io/kubectl
+  labels: {}
+  resources: {}
+labels: {}
+lifecycle: {}
+livenessProbe:
+  failureThreshold: 5
+  httpGet:
+    path: /metrics
+    port: http-monitoring
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  successThreshold: 1
+  timeoutSeconds: 5
+metrics:
+  enabled: true
+  nodeAgentPodMonitor:
+    additionalLabels: {}
+    annotations: {}
+    autodetect: true
+    enabled: false
+  podAnnotations:
+    prometheus.io/path: /metrics
+    prometheus.io/port: "8085"
+    prometheus.io/scrape: "true"
+  prometheusRule:
+    additionalLabels: {}
+    autodetect: true
+    enabled: false
+    spec: []
+  scrapeInterval: 30s
+  scrapeTimeout: 10s
+  service:
+    annotations: {}
+    externalTrafficPolicy: ""
+    internalTrafficPolicy: ""
+    ipFamilies: []
+    ipFamilyPolicy: ""
+    labels: {}
+    nodePort: null
+    type: ClusterIP
+  serviceMonitor:
+    additionalLabels: {}
+    annotations: {}
+    autodetect: true
+    enabled: false
+nameOverride: ""
+namespace:
+  labels: {}
+nodeAgent:
+  affinity: {}
+  annotations: {}
+  containerSecurityContext: {}
+  disableHostPath: false
+  dnsConfig: {}
+  dnsPolicy: ClusterFirst
+  extraArgs: []
+  extraEnvVars: []
+  extraVolumeMounts: []
+  extraVolumes: []
+  hostAliases: []
+  labels: {}
+  lifecycle: {}
+  nodeSelector: {}
+  pluginVolumePath: /var/lib/kubelet/plugins
+  podLabels: {}
+  podSecurityContext:
+    runAsUser: 0
+  podVolumePath: /var/lib/kubelet/pods
+  priorityClassName: ""
+  resizePolicy: []
+  resources: {}
+  runtimeClassName: ""
+  tolerations: []
+  updateStrategy: {}
+  useScratchEmptyDir: true
+nodeSelector: {}
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+priorityClassName: ""
+rbac:
+  clusterAdministrator: true
+  clusterAdministratorName: cluster-admin
+  create: true
+readinessProbe:
+  failureThreshold: 5
+  httpGet:
+    path: /metrics
+    port: http-monitoring
+    scheme: HTTP
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  successThreshold: 1
+  timeoutSeconds: 5
+resizePolicy: []
+resources: {}
+runtimeClassName: ""
+schedules:
+  daily-app-backup:
+    disabled: false
+    schedule: 0 18 * * *
+    template:
+      defaultVolumesToFsBackup: true
+      includedNamespaces:
+      - monitoring
+      - logging
+      - default
+      snapshotVolumes: false
+      storageLocation: daily-backup
+      ttl: 168h
+  monthly-full-backup:
+    disabled: false
+    schedule: 3 19 * * 0
+    template:
+      defaultVolumesToFsBackup: true
+      snapshotVolumes: false
+      storageLocation: monthly-backup
+      ttl: 720h
+  weekly-backup:
+    disabled: false
+    schedule: 1 19 * * 0
+    template:
+      defaultVolumesToFsBackup: true
+      includedNamespaces:
+      - kube-system
+      snapshotVolumes: false
+      storageLocation: weekly-backup
+      ttl: 720h
+secretAnnotations: {}
+serviceAccount:
+  server:
+    annotations: null
+    automountServiceAccountToken: true
+    create: true
+    imagePullSecrets: []
+    labels: null
+    name: null
+snapshotsEnabled: true
+terminationGracePeriodSeconds: 3600
+tolerations: []
+upgradeCRDs: true
+upgradeCRDsJob:
+  automountServiceAccountToken: true
+  extraEnvVars: []
+  extraVolumeMounts: []
+  extraVolumes: []
+upgradeJobResources: {}
