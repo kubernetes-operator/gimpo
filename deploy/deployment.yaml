@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gimpo-velero-dashboard
+  namespace: velero
+  labels:
+    app: gimpo-velero-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gimpo-velero-dashboard
+  template:
+    metadata:
+      labels:
+        app: gimpo-velero-dashboard
+    spec:
+      serviceAccountName: gimpo-velero-dashboard
+      containers:
+        - name: dashboard
+          # 클러스터 내부 레지스트리(다른 앱과 동일 관행). 태그를 올릴 때마다 갱신한다.
+          image: registry.local.cloud:5000/gimpo:0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: VELERO_NAMESPACE
+              value: "velero"
+            - name: STATIC_DIR
+              value: "/app/public"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            # node:22-slim 의 'node' 유저는 UID/GID 1000. 비루트 검증을 위해 숫자로 지정.
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

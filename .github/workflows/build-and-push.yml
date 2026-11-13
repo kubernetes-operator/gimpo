@@ -1,0 +1,37 @@
+name: build-and-push
+
+# main 브랜치 push / 태그 / 수동 실행 시 컨테이너 이미지를 내부 레지스트리로 빌드·푸시한다.
+# 클러스터의 다른 앱과 동일하게 registry.local.cloud:5000 을 사용한다.
+# 주의: registry.local.cloud:5000 은 내부망 레지스트리이므로, 이 워크플로는 해당
+#       레지스트리에 접근 가능한 self-hosted 러너에서 실행돼야 한다.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.local.cloud:5000
+  IMAGE: gimpo
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute tags
+        id: tags
+        run: echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ steps.tags.outputs.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest

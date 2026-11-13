@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gimpo-velero-dashboard
+  namespace: argocd
+  # 앱을 지워도 실제 리소스 정리는 ArgoCD 가 담당하도록 finalizer 부여
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kubernetes-operator/gimpo.git
+    # 이 브랜치가 main 에 병합되면 그대로 배포된다. 브랜치를 직접 추적하려면
+    # targetRevision 을 feat/velero-dashboard-harness 로 바꾸면 된다.
+    targetRevision: main
+    path: deploy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
