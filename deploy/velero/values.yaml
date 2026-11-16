@@ -14,7 +14,7 @@
 #   1) 네임스페이스 velero
 #   2) 시크릿 velero-minio-credentials (key: cloud) — MinIO/S3 자격증명
 #   3) MinIO(또는 S3) 가 http://minio:9000 로 접근 가능하고 아래 버킷 존재:
-#      osc-backup, daily-backup, weekly-backup, monthly-backup
+#      osc-backup (MinIO, 설정 YAML 백업) — PVC 데이터는 SeaweedFS velero-backups 버킷
 
 affinity: {}
 annotations: {}
@@ -36,51 +36,6 @@ configuration:
       name: velero-minio-credentials
     default: true
     name: null
-    prefix: null
-    provider: aws
-    validationFrequency: null
-  - accessMode: ReadWrite
-    bucket: daily-backup
-    caCert: null
-    config:
-      region: Prod
-      s3ForcePathStyle: true
-      s3Url: http://minio:9000
-    credential:
-      key: cloud
-      name: velero-minio-credentials
-    default: false
-    name: daily-backup
-    prefix: null
-    provider: aws
-    validationFrequency: null
-  - accessMode: ReadWrite
-    bucket: weekly-backup
-    caCert: null
-    config:
-      region: Prod
-      s3ForcePathStyle: true
-      s3Url: http://minio:9000
-    credential:
-      key: cloud
-      name: velero-minio-credentials
-    default: false
-    name: weekly-backup
-    prefix: null
-    provider: aws
-    validationFrequency: null
-  - accessMode: ReadWrite
-    bucket: monthly-backup
-    caCert: null
-    config:
-      region: Prod
-      s3ForcePathStyle: true
-      s3Url: http://minio:9000
-    credential:
-      key: cloud
-      name: velero-minio-credentials
-    default: false
-    name: monthly-backup
     prefix: null
     provider: aws
     validationFrequency: null
