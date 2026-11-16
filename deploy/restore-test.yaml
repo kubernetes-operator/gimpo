@@ -1,0 +1,37 @@
+# 자동 복구 테스트 전용 네임스페이스.
+# 대시보드는 매일 이 안에서만 테스트 Pod·PVC·ConfigMap·Secret 을 만들고 → 백업 → 삭제 → 복구 → 검증 → 정리한다.
+# 네임스페이스와 권한은 GitOps 로 유지하고, 대시보드 SA 의 쓰기 권한은 이 네임스페이스로만 제한한다.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero-restore-test
+  labels:
+    app.kubernetes.io/part-of: gimpo-velero-dashboard
+    gimpo.io/purpose: restore-test
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gimpo-restore-test
+  namespace: velero-restore-test
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "persistentvolumeclaims", "configmaps", "secrets"]
+    verbs: ["get", "list", "watch", "create", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gimpo-restore-test
+  namespace: velero-restore-test
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gimpo-restore-test
+subjects:
+  - kind: ServiceAccount
+    name: gimpo-velero-dashboard
+    namespace: velero

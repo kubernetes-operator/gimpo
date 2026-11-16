@@ -48,6 +48,91 @@ export interface ServerStatus {
   plugins?: Array<{ name: string; kind: string }>;
 }
 
+export interface ScheduleCR extends CR {
+  gimpo?: {
+    displayName: string;
+    description: string;
+    previousNames: string[];
+    helmManaged: boolean;
+    tz: string;
+    expr: string;
+    nextRuns: string[];
+    prevExpected?: string;
+  };
+}
+export interface RenameResult {
+  message: string;
+  oldBackups: { policy: string; count: number; deleteRequested: number };
+  helmWarning?: string;
+}
+
+export type Level = 'ok' | 'warn' | 'fail';
+export interface HealthCheck {
+  id: string;
+  category: string;
+  name: string;
+  status: Level;
+  message: string;
+}
+export interface ScheduleHealth {
+  name: string;
+  displayName: string;
+  schedule: string;
+  paused: boolean;
+  storageLocation?: string;
+  ttl?: string;
+  nextRun?: string;
+  lastBackup?: { name: string; phase?: string; startedAt?: string; completedAt?: string; errors?: number; warnings?: number };
+  lastSuccessAt?: string;
+  status: Level;
+  message: string;
+}
+export interface HealthReport {
+  overall: Level;
+  checkedAt: string;
+  counts: Record<Level, number>;
+  checks: HealthCheck[];
+  schedules: ScheduleHealth[];
+}
+
+export interface RestoreTestConfig {
+  enabled: boolean;
+  schedule: string;
+  storageLocation: string;
+  timeoutMinutes: number;
+  backupTtl: string;
+  keepRestores: number;
+}
+export interface RestoreTestStep {
+  key: string;
+  name: string;
+  status: 'pending' | 'running' | 'success' | 'failed' | 'skipped';
+  startedAt?: string;
+  finishedAt?: string;
+  message?: string;
+}
+export interface RestoreTestRun {
+  id: string;
+  trigger: 'schedule' | 'manual';
+  status: 'running' | 'success' | 'failed' | 'aborted';
+  startedAt: string;
+  finishedAt?: string;
+  durationSec?: number;
+  storageLocation: string;
+  backupName?: string;
+  restoreName?: string;
+  marker?: { content: string; blobSha?: string; restoredBlobSha?: string };
+  steps: RestoreTestStep[];
+  error?: string;
+}
+export interface RestoreTestState {
+  config: RestoreTestConfig;
+  namespace: string;
+  nextRuns: string[];
+  running: RestoreTestRun | null;
+  history: RestoreTestRun[];
+}
+
 // ─── API 래퍼 ──────────────────────────────────────────────────────────
 export const api = {
   // backups
@@ -70,8 +155,24 @@ export const api = {
   restoreResults: (n: string) => http.get(`/restores/${n}/results`).then((r) => r.data),
 
   // schedules
-  listSchedules: () => http.get<CR[]>('/schedules').then((r) => r.data),
-  getSchedule: (n: string) => http.get<CR>(`/schedules/${n}`).then((r) => r.data),
+  listSchedules: () => http.get<ScheduleCR[]>('/schedules').then((r) => r.data),
+  getSchedule: (n: string) => http.get<ScheduleCR>(`/schedules/${n}`).then((r) => r.data),
+  updateSchedule: (n: string, body: unknown) =>
+    http.put<ScheduleCR>(`/schedules/${n}`, body).then((r) => r.data),
+  renameSchedule: (n: string, body: { newName: string; oldBackups: 'link' | 'keep' | 'delete' }) =>
+    http.post<RenameResult>(`/schedules/${n}/rename`, body).then((r) => r.data),
+  scheduleBackups: (n: string, previous: boolean) =>
+    http.get<CR[]>(`/schedules/${n}/backups`, { params: { previous: previous ? '1' : '0' } }).then((r) => r.data),
+  cronPreview: (schedule: string) =>
+    http.post<{ tz: string; expr: string; nextRuns: string[] }>('/cron/preview', { schedule }).then((r) => r.data),
+
+  // health / restore test
+  healthReport: (refresh = false) =>
+    http.get<HealthReport>('/health/report', { params: refresh ? { refresh: '1' } : {} }).then((r) => r.data),
+  restoreTest: () => http.get<RestoreTestState>('/restore-test').then((r) => r.data),
+  updateRestoreTestConfig: (body: Partial<RestoreTestConfig>) =>
+    http.put<RestoreTestConfig>('/restore-test/config', body).then((r) => r.data),
+  runRestoreTest: () => http.post('/restore-test/run').then((r) => r.data),
   createSchedule: (body: unknown) => http.post<CR>('/schedules', body).then((r) => r.data),
   deleteSchedule: (n: string) => http.delete(`/schedules/${n}`).then((r) => r.data),
   pauseSchedule: (n: string, paused: boolean) =>

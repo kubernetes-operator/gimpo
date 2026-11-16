@@ -146,8 +146,12 @@ const moveData = computed({
   set: (v) => (m.value.snapshotMoveData = v),
 });
 
-// matchLabels ↔ ["k=v"] 배열 변환
-const labelPairs = ref<string[]>([]);
+// matchLabels ↔ ["k=v"] 배열 변환 (편집 시 기존 값으로 초기화)
+const labelPairs = ref<string[]>(
+  Object.entries((m.value.labelSelector?.matchLabels ?? {}) as Record<string, string>).map(
+    ([k, v]) => `${k}=${v}`,
+  ),
+);
 watch(
   labelPairs,
   (pairs) => {
@@ -162,7 +166,7 @@ watch(
 );
 
 // hooks JSON 파싱
-const hooksJson = ref('');
+const hooksJson = ref(m.value.hooks ? JSON.stringify(m.value.hooks, null, 2) : '');
 watch(hooksJson, (txt) => {
   const t = txt.trim();
   if (!t) {

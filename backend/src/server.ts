@@ -8,6 +8,9 @@ import scheduleRoutes from './routes/schedules';
 import locationRoutes from './routes/locations';
 import repoRoutes from './routes/repos';
 import clusterRoutes from './routes/cluster';
+import healthRoutes from './routes/health';
+import restoreTestRoutes from './routes/restoretest';
+import { startRestoreTestScheduler } from './restoretest/scheduler';
 
 export async function buildServer() {
   const app = Fastify({ logger: { level: config.logLevel } });
@@ -40,6 +43,8 @@ export async function buildServer() {
   await app.register(locationRoutes);
   await app.register(repoRoutes);
   await app.register(clusterRoutes);
+  await app.register(healthRoutes);
+  await app.register(restoreTestRoutes);
 
   // 프로덕션: SPA 정적 서빙 + 클라이언트 라우팅 fallback
   if (config.staticDir && fs.existsSync(config.staticDir)) {
@@ -64,6 +69,7 @@ async function main() {
   const app = await buildServer();
   try {
     await app.listen({ port: config.port, host: config.host });
+    if (!config.restoreTest.schedulerDisabled) startRestoreTestScheduler(app.log);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

@@ -6,6 +6,7 @@ const router = createRouter({
   routes: [
     { path: '/', redirect: '/overview' },
     { path: '/overview', name: 'overview', component: () => import('./views/OverviewView.vue') },
+    { path: '/health', name: 'health', component: () => import('./views/HealthView.vue') },
     { path: '/backups', name: 'backups', component: () => import('./views/BackupsView.vue') },
     { path: '/restores', name: 'restores', component: () => import('./views/RestoresView.vue') },
     { path: '/schedules', name: 'schedules', component: () => import('./views/SchedulesView.vue') },

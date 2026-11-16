@@ -4,6 +4,21 @@
       <el-button :icon="Refresh" @click="load">새로고침</el-button>
     </div>
 
+    <el-alert
+      v-if="health"
+      :type="health.overall === 'ok' ? 'success' : health.overall === 'warn' ? 'warning' : 'error'"
+      :closable="false"
+      show-icon
+      style="margin-bottom: 16px; cursor: pointer"
+      @click="router.push('/health')"
+    >
+      <template #title>
+        {{ health.overall === 'ok' ? '백업·복구 정상' : health.overall === 'warn' ? '확인이 필요한 항목이 있습니다' : '이상 항목이 있습니다' }}
+        — 정상 {{ health.counts.ok }} · 주의 {{ health.counts.warn }} · 이상 {{ health.counts.fail }}
+        <span style="text-decoration: underline; margin-left: 6px">상태 점검 보기 →</span>
+      </template>
+    </el-alert>
+
     <div class="stat-cards">
       <el-card shadow="hover">
         <div style="font-size: 13px; color: #909399">백업</div>
@@ -56,7 +71,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { Refresh } from '@element-plus/icons-vue';
-import { api, type CR, type ServerStatus } from '@/api/client';
+import { useRouter } from 'vue-router';
+import { api, type CR, type HealthReport, type ServerStatus } from '@/api/client';
 import PhaseTag from '@/components/PhaseTag.vue';
 import { fmtTime } from '@/utils/format';
 
@@ -65,6 +81,8 @@ const restores = ref<CR[]>([]);
 const schedules = ref<CR[]>([]);
 const bsl = ref<CR[]>([]);
 const status = ref<ServerStatus | null>(null);
+const health = ref<HealthReport | null>(null);
+const router = useRouter();
 
 const count = (arr: CR[], phase: string) =>
   arr.filter((x) => x.status?.phase === phase).length;
@@ -89,6 +107,7 @@ async function load() {
   schedules.value = s;
   bsl.value = l;
   api.serverStatus().then((v) => (status.value = v)).catch(() => undefined);
+  api.healthReport().then((v) => (health.value = v)).catch(() => undefined);
 }
 
 onMounted(load);

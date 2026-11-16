@@ -13,6 +13,8 @@ kc.loadFromDefault();
 export const kubeConfig = kc;
 export const customObjects = kc.makeApiClient(k8s.CustomObjectsApi);
 export const coreV1 = kc.makeApiClient(k8s.CoreV1Api);
+export const appsV1 = kc.makeApiClient(k8s.AppsV1Api);
+export const batchV1 = kc.makeApiClient(k8s.BatchV1Api);
 
 /**
  * 클러스터 REST 엔드포인트로 인증된 raw GET 요청. discovery(/apis, /api/v1) 용.

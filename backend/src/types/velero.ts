@@ -12,6 +12,9 @@ export interface K8sMeta {
   creationTimestamp?: string;
   uid?: string;
   resourceVersion?: string;
+  generateName?: string;
+  deletionTimestamp?: string;
+  ownerReferences?: Array<{ apiVersion: string; kind: string; name: string; uid: string }>;
 }
 
 export interface CustomResource<Spec = unknown, Status = unknown> {

@@ -37,6 +37,39 @@ kubectl -n velero port-forward svc/minio 9000:9000   # 환경에 맞게 서비�
 | `VELERO_NAMESPACE` | `velero` | Velero 가 설치된 네임스페이스 |
 | `DOWNLOAD_TIMEOUT_MS` | `30000` | DownloadRequest signed URL 폴링 타임아웃 |
 | `STATIC_DIR` | (빌드 시) | SPA 정적 파일 경로. 미설정 시 정적 서빙 비활성(개발 모드) |
+| `RESTORE_TEST_NAMESPACE` | `velero-restore-test` | 자동 복구 테스트 전용 네임스페이스 |
+| `RESTORE_TEST_IMAGE` | `registry.local.cloud:5000/gimpo:latest` | 테스트 파드 이미지(대시보드 이미지 재사용) |
+| `RESTORE_TEST_STATE_CM` | `gimpo-restore-test` | 복구 테스트 설정·이력 ConfigMap(velero NS) |
+| `RESTORE_TEST_SCHEDULER` | (켜짐) | `off` 면 예약 실행 비활성(로컬 개발용) |
+
+## 상태 점검 · 자동 복구 테스트
+
+**상태 점검 화면**(`/health`)은 1분마다 아래를 점검해 🟢/🟡/🔴 로 보여준다. 개요 화면 상단에도 요약이 뜬다.
+
+| 분류 | 항목 | 이상 기준 |
+|------|------|-----------|
+| 서버 | Velero 서버, node-agent(노드별) | Ready 아님 |
+| 저장소 | 모든 BSL | Available 아님 / 1시간 넘게 미확인 |
+| 스케줄 | 스케줄별 최근 백업 | 예정 시각에 미실행(🔴), PartiallyFailed(🟡), 6시간 넘게 진행 중(🔴) |
+| 작업 | 멈춘 PVB·PVR·DataUpload, 처리 대기 삭제 요청, 저장소 정리 잡 | 4시간 넘게 진행 / 1·24시간 넘게 대기 / 6시간 넘게 실행 |
+| 복구 테스트 | 최근 자동 복구 테스트 | 실패(🔴), 예정보다 오래됨·꺼짐(🟡) |
+
+**자동 복구 테스트**는 매일(기본 05:00 KST) 전용 네임스페이스 `velero-restore-test` 에서:
+
+1. 그날 날짜·임의값이 들어간 Pod·PVC(파일 + 1MiB 난수)·ConfigMap·Secret 생성
+2. 백업(기본 저장 위치 `seaweedfs-lab`, 72시간 보관) → 3. 리소스 삭제(장애 재현) → 4. 복구
+5. ConfigMap·Secret·PVC 파일·1MiB 데이터 sha256 이 원본과 같은지 검증 → 6. 정리
+
+설정(켜기/끄기, 일정, 저장 위치, 제한 시간)·"지금 실행"·단계별 결과·이력은 상태 점검 화면에서 다룬다.
+설정·이력은 ConfigMap `velero/gimpo-restore-test` 에 저장된다. 실패 시 테스트 리소스는 원인 분석용으로 남겨 두고 다음 실행 때 정리한다.
+
+## 스케줄 편집
+
+- 일정은 **한국 시간**으로 고른다(매일/매주/매월/직접 입력). Velero 의 `CRON_TZ=Asia/Seoul …` 표기로 저장된다.
+- **표시 이름**·설명은 화면용 어노테이션(`gimpo.io/display-name`, `gimpo.io/description`)이라 언제든 바꿔도 Velero 동작에 영향이 없다.
+- **실제 이름 변경**은 "같은 설정으로 새로 만들고 기존 삭제"다. 기존 백업 처리를 고른다:
+  이력에 연결(`gimpo.io/previous-names` 에 기록, 이력 화면에서 과거 백업 조회) / 유지만 / 삭제.
+  Helm 이 만든 스케줄이면 Helm values 이름도 바꾸지 않으면 다음 upgrade 때 옛 이름이 다시 생긴다는 경고를 띄운다.
 
 > 자격증명(kubeconfig, 토큰, 비밀번호 등)은 **코드/이미지/매니페스트에 절대 포함하지 않는다.**
 > 인증은 로컬 kubeconfig 또는 in-cluster SA 로만 이뤄진다.
