@@ -275,26 +275,32 @@ resizePolicy: []
 resources: {}
 runtimeClassName: ""
 schedules:
+  # 매일 03:00 KST, 앱 네임스페이스만, 7일 보관
   daily-app-backup:
     disabled: false
     schedule: 0 18 * * *
     template:
       defaultVolumesToFsBackup: true
       includedNamespaces:
-      - monitoring
-      - logging
       - default
+      - demo-app
+      - memonest
       snapshotVolumes: false
       storageLocation: daily-backup
       ttl: 168h
+  # 매월 1일 19:03 UTC(= 매월 2일 04:03 KST), 전체(velero 제외).
+  # 35일 보관 → 다음 달 백업이 생긴 뒤 며칠 안에 이전 백업이 자동 삭제된다.
   monthly-full-backup:
     disabled: false
-    schedule: 3 19 * * 0
+    schedule: 3 19 1 * *
     template:
+      # 백업 저장소(MinIO)가 있는 velero NS 는 제외 — 자기 자신을 백업하면 수백 GB·시간 초과 유발
+      excludedNamespaces:
+      - velero
       defaultVolumesToFsBackup: true
       snapshotVolumes: false
       storageLocation: monthly-backup
-      ttl: 720h
+      ttl: 840h
   weekly-backup:
     disabled: false
     schedule: 1 19 * * 0
