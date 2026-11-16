@@ -11,7 +11,8 @@ values 가 아래를 참조하므로 **helm 설치 전에** 준비돼 있어야 
 
 1. **MinIO/S3 접근성**: `http://minio:9000` (클러스터 내부 서비스 기준). 새 클러스터의
    실제 주소가 다르면 `values.yaml` 의 모든 `s3Url` 을 수정한다.
-2. **버킷**: `osc-backup`, `daily-backup`, `weekly-backup`, `monthly-backup` 존재.
+2. **버킷**: MinIO `osc-backup`(설정 YAML 백업), SeaweedFS `velero-backups`(PVC 데이터 백업) 존재.
+   (2026-11-16 MinIO `daily-backup`·`weekly-backup`·`monthly-backup` 저장 위치는 사용 중단·삭제됨)
 3. **자격증명 시크릿**: `velero` 네임스페이스에 `velero-minio-credentials`(key `cloud`).
    - 값은 조직 정책상 이 문서에 넣지 않는다. 아래 형식으로 **직접** 생성한다.
 
@@ -102,7 +103,7 @@ kubectl -n velero scale deploy/velero --replicas=0
 kubectl -n velero delete deletebackuprequests.velero.io,backups.velero.io,podvolumebackups.velero.io,backuprepositories.velero.io --all
 # 3) 모든 MinIO 파드·드라이브에서 velero 프리픽스 삭제 (버킷 자체와 다른 버킷은 유지)
 for p in minio-0 minio-1; do kubectl -n velero exec $p -- sh -c \
-  'for d in /export-0 /export-1; do for b in daily-backup weekly-backup monthly-backup osc-backup; do
+  'for d in /export-0 /export-1; do for b in osc-backup; do
      rm -rf $d/$b/backups $d/$b/kopia $d/$b/restores $d/.minio.sys/buckets/$b/.metacache; done; done'; done
 # 4) MinIO 재시작 → velero 복구 → BSL Available 확인 → 테스트 백업 → 스케줄 재개
 kubectl -n velero rollout restart sts/minio && kubectl -n velero rollout status sts/minio

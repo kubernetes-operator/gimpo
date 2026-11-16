@@ -170,11 +170,22 @@ function scheduleHealth(s: Schedule, backups: Backup[]): ScheduleHealth {
   const expected = base.prevExpected ? new Date(base.prevExpected).getTime() : 0;
   const grace = Math.min(2 * H, (intervalMs(raw) ?? 24 * H) / 2);
   const lastStart = last?.metadata?.creationTimestamp ? new Date(last.metadata.creationTimestamp).getTime() : 0;
+  // 스케줄이 기록한 마지막 실행 시각도 실행 증거로 본다(백업이 삭제·만료돼 목록에 없을 수 있음).
+  const schedLast = (s.status as { lastBackup?: string } | undefined)?.lastBackup;
+  const lastRun = Math.max(lastStart, schedLast ? new Date(schedLast).getTime() : 0);
 
-  if (expected > created && Date.now() - expected > grace && lastStart < expected - 5 * 60_000) {
+  if (expected > created && Date.now() - expected > grace && lastRun < expected - 5 * 60_000) {
     return { ...base, status: 'fail', message: `예정된 백업(${kst(expected)})이 실행되지 않음` };
   }
-  if (!last) return { ...base, status: 'ok', message: '아직 실행 전 (첫 실행 대기)' };
+  if (!last) {
+    return lastRun
+      ? { ...base, status: 'ok', message: `예정대로 실행됨 (${hrs(Date.now() - lastRun)} 전) — 해당 백업은 삭제·만료되어 목록에 없음` }
+      : { ...base, status: 'ok', message: '아직 실행 전 (첫 실행 대기)' };
+  }
+  if (lastStart < lastRun - 5 * 60_000) {
+    // 최신 실행분의 백업이 목록에 없으면 남아 있는 더 오래된 백업 상태로 판단하지 않는다
+    return { ...base, status: 'ok', message: `예정대로 실행됨 (${hrs(Date.now() - lastRun)} 전) — 최신 백업은 삭제·만료되어 목록에 없음` };
+  }
   switch (st.phase) {
     case 'Completed':
       return { ...base, status: 'ok', message: `최근 백업 성공 (${hrs(age(st.completionTimestamp))} 전)` };
