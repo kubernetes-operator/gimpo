@@ -118,3 +118,49 @@ kubectl -n velero get backupstoragelocations.velero.io
 - ~~control-plane 노드 node-agent 미배치~~ → **해결**: `nodeAgent.tolerations` 에 control-plane·`nvidia.com/gpu`
   toleration 추가(클러스터 DaemonSet 에도 적용). GPU toleration 은 필수다 — 없으면 DaemonSet 재시작 시 GPU 노드
   (ollama 등)에서 node-agent 가 빠져 그 노드 볼륨이 백업되지 않는다.
+
+## 백업·복구 설계 (2026-11-16~)
+
+목표: **리소스(YAML)는 MinIO, PVC 데이터는 SeaweedFS(MinIO NAS 와 물리적으로 분리된 공간)**.
+
+Velero 는 백업 하나를 저장 위치(BSL) 하나에만 저장하고, 볼륨 데이터(kopia 파일 백업)도 그 BSL 을 따른다.
+VSL 은 클라우드 디스크 스냅샷(EBS 등) 전용이라 S3 저장소를 볼륨 저장 위치로 쓸 수 없고, 이 클러스터는 NFS 라
+CSI 스냅샷도 불가하다. 그래서 백업을 "쪼개지" 않고 **두 종류를 겹쳐** 만든다.
+
+| 종류 | 내용 | 저장 위치 | 스케줄 (KST) | 보관 |
+|------|------|-----------|--------------|------|
+| ① config | 모든 NS 리소스(YAML)만, 볼륨 데이터 없음 (velero NS 제외) | MinIO `default`(osc-backup) | `velero-config-backup` 매일 03:30 | 30일 |
+| ② data (daily) | default·demo-app·memonest, YAML+볼륨 | SeaweedFS `seaweedfs-lab` | `velero-daily-app-backup` 매일 03:00 | 7일 |
+| ② data (monthly) | 전체(velero 제외), YAML+볼륨 | SeaweedFS `seaweedfs-lab` | `velero-monthly-full-backup` 매월 2일 04:03 | 35일 |
+
+- ② 는 그 자체로 완전한 백업이라 **복구는 항상 백업 1개로 끝난다**(순서 맞추기 불필요).
+- monthly 를 "전체"로 두는 이유: 새 앱 NS 를 목록에 넣는 걸 잊어도 누락되지 않게. PVC 없는 NS 는 수 MB 라 부담 없음.
+- SeaweedFS 사전 준비: `velero` NS 에 시크릿 `seaweedfs-credentials`(key `cloud`, AWS credentials 파일 형식)를 직접 생성.
+
+### 복구 시나리오
+
+| 상황 | 백업 | 방법 |
+|------|------|------|
+| 설정 실수(Deployment/ConfigMap 등) | ① config | 해당 NS·리소스만 골라 복구 (`includedNamespaces`, `includedResources`) |
+| 데이터 손상(DB·파일) | ② daily/monthly | 해당 NS 삭제 후 ② 에서 NS 단위 복구 |
+| 복구 전 내용 확인 | ② | `namespaceMapping` 으로 다른 NS 에 나란히 복구 → 확인 후 삭제 |
+| 클러스터 전체 재구축 | ② → ① | Velero 설치(이 values) → ② monthly 복구 → ① 최신 config 복구(이미 있는 리소스는 Velero 가 건너뜀) |
+
+나란히 복구(검증용) 예시 — 실제 트래픽 경로와 초기화 Job 은 제외한다:
+
+```yaml
+apiVersion: velero.io/v1
+kind: Restore
+metadata: { generateName: verify-restore-, namespace: velero }
+spec:
+  backupName: <② 백업 이름>
+  namespaceMapping: { demo-app: demo-app-restore-test }
+  excludedResources: [httproutes.gateway.networking.k8s.io, ingresses.networking.k8s.io, jobs.batch]
+  restorePVs: true
+```
+
+- 나란히 복구 시 **고정 NodePort 를 쓰는 Service 는 원본과 충돌해 오류 1건**이 날 수 있다(정상). 원본을 지우고 복구하는 실제 상황에선 발생하지 않는다.
+- 검증 기록(2026-11-16): demo-app → SeaweedFS 백업(Postgres 47.8MB, 6초) → `demo-app-restore-test` 복구, 테이블·행 수 원본과 일치.
+
+### 정기 점검
+- 매월 monthly 백업 후 위 "나란히 복구"로 임의 NS 1개 복구 검증.
