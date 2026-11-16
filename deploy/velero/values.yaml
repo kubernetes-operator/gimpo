@@ -289,7 +289,10 @@ readinessProbe:
   successThreshold: 1
   timeoutSeconds: 5
 resizePolicy: []
-resources: {}
+resources:
+  requests:
+    cpu: 23m
+    memory: 420Mi
 runtimeClassName: ""
 schedules:
   # 백업 설계: ① config = 모든 리소스(YAML)만 → MinIO, ② data = PVC 앱 통째(YAML+볼륨) → SeaweedFS.
