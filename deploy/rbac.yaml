@@ -32,3 +32,40 @@ subjects:
   - kind: ServiceAccount
     name: gimpo-velero-dashboard
     namespace: velero
+---
+# velero 네임스페이스 한정 권한
+#  - 상태 점검: velero 서버 Deployment, node-agent DaemonSet, 저장소 정리 Job 조회(읽기 전용)
+#  - 복구 테스트 설정·이력 저장: ConfigMap gimpo-restore-test (수정은 이 이름으로만 제한)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gimpo-velero-dashboard
+  namespace: velero
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments", "daemonsets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["gimpo-restore-test"]
+    verbs: ["get", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gimpo-velero-dashboard
+  namespace: velero
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gimpo-velero-dashboard
+subjects:
+  - kind: ServiceAccount
+    name: gimpo-velero-dashboard
+    namespace: velero

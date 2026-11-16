@@ -13,6 +13,7 @@
         active-text-color="#ffd04b"
       >
         <el-menu-item index="/overview"><el-icon><Odometer /></el-icon>개요</el-menu-item>
+        <el-menu-item index="/health"><el-icon><FirstAidKit /></el-icon>상태 점검</el-menu-item>
         <el-menu-item index="/backups"><el-icon><Files /></el-icon>백업</el-menu-item>
         <el-menu-item index="/restores"><el-icon><RefreshLeft /></el-icon>복구</el-menu-item>
         <el-menu-item index="/schedules"><el-icon><Timer /></el-icon>스케줄</el-menu-item>

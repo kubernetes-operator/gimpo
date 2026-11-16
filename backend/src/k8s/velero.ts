@@ -65,6 +65,32 @@ export const velero = {
     });
   },
 
+  /** 전체 교체(update). body.metadata.resourceVersion 이 있으면 낙관적 동시성 검사가 걸린다. */
+  async replace<T = CustomResource>(plural: string, name: string, body: CustomResource): Promise<T> {
+    return (await customObjects.replaceNamespacedCustomObject({
+      group: GROUP,
+      version: VERSION,
+      namespace: ns(),
+      plural,
+      name,
+      body,
+    })) as T;
+  },
+
+  /** 라벨 셀렉터로 목록 조회. */
+  async listBySelector<T = CustomResource>(
+    plural: string,
+    labelSelector: string,
+  ): Promise<CustomResourceList<T>> {
+    return (await customObjects.listNamespacedCustomObject({
+      group: GROUP,
+      version: VERSION,
+      namespace: ns(),
+      plural,
+      labelSelector,
+    })) as CustomResourceList<T>;
+  },
+
   /** JSON merge patch (spec/annotation 일부 갱신용: BSL 기본 설정, 스케줄 pause 등). */
   async mergePatch<T = CustomResource>(
     plural: string,
