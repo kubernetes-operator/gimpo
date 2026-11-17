@@ -19,7 +19,7 @@ spec:
       containers:
         - name: dashboard
           # 클러스터 내부 레지스트리(다른 앱과 동일 관행). 태그를 올릴 때마다 갱신한다.
-          image: registry.local.cloud:5000/gimpo:293ff9c2f081
+          image: registry.local.cloud:5000/gimpo:0.3.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
@@ -32,7 +32,7 @@ spec:
               value: "/app/public"
             # 자동 복구 테스트 파드 이미지 — 이 대시보드 이미지를 재사용(내부 레지스트리, sh/sleep 포함)
             - name: RESTORE_TEST_IMAGE
-              value: "registry.local.cloud:5000/gimpo:0.3.1"
+              value: "registry.local.cloud:5000/gimpo:0.3.2"
           readinessProbe:
             httpGet:
               path: /healthz

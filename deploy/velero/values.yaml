@@ -87,7 +87,8 @@ configuration:
   repositoryMaintenanceJob:
     repositoryConfigData:
       global:
-        keepLatestMaintenanceJobs: 3
+        # 저장소당 남길 정리(maintenance) 잡 수. 정리 결과는 BackupRepository 기록에 남으므로 로그 확인용 최신 1개면 충분
+        keepLatestMaintenanceJobs: 1
       name: velero-repo-maintenance
       repositories: {}
   restoreOnlyMode: null

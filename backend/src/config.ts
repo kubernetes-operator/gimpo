@@ -10,6 +10,9 @@ export const config = {
   staticDir: process.env.STATIC_DIR || undefined,
   logLevel: process.env.LOG_LEVEL ?? 'info',
 
+  /** Velero 정리(maintenance) 잡 자동 정리 — `off` 면 비활성 */
+  maintenanceJobCleanupDisabled: process.env.MAINT_JOB_CLEANUP === 'off',
+
   /** 자동 복구 테스트 */
   restoreTest: {
     /** 테스트 전용 네임스페이스. deploy/restore-test.yaml 이 Namespace·Role 을 GitOps 로 관리한다. */

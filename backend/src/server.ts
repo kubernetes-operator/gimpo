@@ -11,6 +11,7 @@ import clusterRoutes from './routes/cluster';
 import healthRoutes from './routes/health';
 import restoreTestRoutes from './routes/restoretest';
 import { startRestoreTestScheduler } from './restoretest/scheduler';
+import { startMaintenanceJobCleanup } from './cleanup/maintenanceJobs';
 
 export async function buildServer() {
   const app = Fastify({ logger: { level: config.logLevel } });
@@ -70,6 +71,7 @@ async function main() {
   try {
     await app.listen({ port: config.port, host: config.host });
     if (!config.restoreTest.schedulerDisabled) startRestoreTestScheduler(app.log);
+    if (!config.maintenanceJobCleanupDisabled) startMaintenanceJobCleanup(app.log);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

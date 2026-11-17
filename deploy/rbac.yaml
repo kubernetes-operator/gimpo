@@ -45,9 +45,10 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments", "daemonsets"]
     verbs: ["get", "list"]
+  # 정리(maintenance) 잡: 상태 점검 조회 + 끝난 잡 자동 정리(주인 없는 잡·설정 개수 초과분 삭제)
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "delete"]
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["create"]
@@ -55,6 +56,11 @@ rules:
     resources: ["configmaps"]
     resourceNames: ["gimpo-restore-test"]
     verbs: ["get", "update", "patch"]
+  # Velero 정리 잡 보관 개수(keepLatestMaintenanceJobs) 읽기
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["velero-repo-maintenance"]
+    verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
