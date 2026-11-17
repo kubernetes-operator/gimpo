@@ -256,6 +256,9 @@ schedules:
   # ② data — 매일 03:00 KST, 앱 네임스페이스, 7일 보관
   daily-app-backup:
     disabled: false
+    annotations:
+      gimpo.io/display-name: 앱 데이터 일일 백업
+      gimpo.io/description: default·demo-app·memonest — YAML+PVC 데이터 → SeaweedFS, 7일 보관
     schedule: 0 18 * * *
     template:
       defaultVolumesToFsBackup: true
@@ -265,11 +268,16 @@ schedules:
       - memonest
       snapshotVolumes: false
       storageLocation: seaweedfs-lab
+      volumeSnapshotLocations:
+      - volume-backup
       ttl: 168h
   # ② data — 매월 1일 19:03 UTC(= 매월 2일 04:03 KST), 전체(velero 제외), 35일 보관
   #   (다음 달 백업이 생긴 뒤 며칠 안에 이전 백업이 자동 삭제된다)
   monthly-full-backup:
     disabled: false
+    annotations:
+      gimpo.io/display-name: 전체 월간 백업
+      gimpo.io/description: 전체 네임스페이스(velero 제외) — YAML+PVC 데이터 → SeaweedFS, 35일 보관
     schedule: 3 19 1 * *
     template:
       # 백업 저장소(MinIO)가 있는 velero NS 는 제외 — 자기 자신을 백업하면 수백 GB·시간 초과 유발
@@ -278,10 +286,15 @@ schedules:
       defaultVolumesToFsBackup: true
       snapshotVolumes: false
       storageLocation: seaweedfs-lab
+      volumeSnapshotLocations:
+      - volume-backup
       ttl: 840h
   # ① config — 매일 03:30 KST, 전체 리소스(YAML)만, 볼륨 데이터 없음, 30일 보관 (기존 weekly 대체)
   config-backup:
     disabled: false
+    annotations:
+      gimpo.io/display-name: 설정(YAML) 일일 백업
+      gimpo.io/description: 전체 리소스 YAML만(볼륨 제외) → MinIO, 30일 보관
     schedule: 30 18 * * *
     useOwnerReferencesInBackup: false
     template:
