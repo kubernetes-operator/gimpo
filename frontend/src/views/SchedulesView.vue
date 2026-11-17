@@ -12,15 +12,15 @@
       <el-table-column label="이름" min-width="230">
         <template #default="{ row }">
           <div style="font-weight: 600">{{ row.gimpo?.displayName || row.metadata.name }}</div>
-          <div v-if="row.gimpo?.displayName" style="font-size: 12px; color: #909399">{{ row.metadata.name }}</div>
-          <div v-if="row.gimpo?.description" style="font-size: 12px; color: #909399">{{ row.gimpo.description }}</div>
+          <div v-if="row.gimpo?.displayName" style="font-size: 12px; color: var(--ws-muted)">{{ row.metadata.name }}</div>
+          <div v-if="row.gimpo?.description" style="font-size: 12px; color: var(--ws-muted)">{{ row.gimpo.description }}</div>
           <el-tag v-if="row.gimpo?.helmManaged" size="small" type="info" effect="plain">Helm</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="일정 (한국 시간)" width="170">
         <template #default="{ row }">
           <div>{{ describeCron(row.spec?.schedule) }}</div>
-          <div style="font-size: 11px; color: #c0c4cc">{{ row.spec?.schedule }}</div>
+          <div style="font-size: 11px; color: var(--ws-muted)">{{ row.spec?.schedule }}</div>
         </template>
       </el-table-column>
       <el-table-column label="다음 실행" width="170">
@@ -39,7 +39,7 @@
       <el-table-column label="저장 위치 / 보관" width="170">
         <template #default="{ row }">
           <div>{{ row.spec?.template?.storageLocation || '(기본)' }}</div>
-          <div style="font-size: 12px; color: #909399">{{ fmtTtl(row.spec?.template?.ttl) }}</div>
+          <div style="font-size: 12px; color: var(--ws-muted)">{{ fmtTtl(row.spec?.template?.ttl) }}</div>
         </template>
       </el-table-column>
       <el-table-column label="작업" width="400" fixed="right">

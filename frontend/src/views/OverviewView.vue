@@ -21,23 +21,23 @@
 
     <div class="stat-cards">
       <el-card shadow="hover">
-        <div style="font-size: 13px; color: #909399">백업</div>
+        <div style="font-size: 13px; color: var(--ws-muted)">백업</div>
         <div style="font-size: 28px; font-weight: 700">{{ backups.length }}</div>
-        <div style="font-size: 12px; color: #67c23a">완료 {{ count(backups, 'Completed') }}</div>
+        <div style="font-size: 12px; color: var(--ws-success)">완료 {{ count(backups, 'Completed') }}</div>
       </el-card>
       <el-card shadow="hover">
-        <div style="font-size: 13px; color: #909399">복구</div>
+        <div style="font-size: 13px; color: var(--ws-muted)">복구</div>
         <div style="font-size: 28px; font-weight: 700">{{ restores.length }}</div>
-        <div style="font-size: 12px; color: #67c23a">완료 {{ count(restores, 'Completed') }}</div>
+        <div style="font-size: 12px; color: var(--ws-success)">완료 {{ count(restores, 'Completed') }}</div>
       </el-card>
       <el-card shadow="hover">
-        <div style="font-size: 13px; color: #909399">스케줄</div>
+        <div style="font-size: 13px; color: var(--ws-muted)">스케줄</div>
         <div style="font-size: 28px; font-weight: 700">{{ schedules.length }}</div>
       </el-card>
       <el-card shadow="hover">
-        <div style="font-size: 13px; color: #909399">스토리지 위치</div>
+        <div style="font-size: 13px; color: var(--ws-muted)">스토리지 위치</div>
         <div style="font-size: 28px; font-weight: 700">{{ bsl.length }}</div>
-        <div style="font-size: 12px; color: #67c23a">가용 {{ count(bsl, 'Available') }}</div>
+        <div style="font-size: 12px; color: var(--ws-success)">가용 {{ count(bsl, 'Available') }}</div>
       </el-card>
     </div>
 

@@ -1,16 +1,13 @@
 <template>
   <el-container style="height: 100vh">
-    <el-aside width="220px" style="background: #1f2d3d">
-      <div style="color: #fff; padding: 18px 16px; font-size: 18px; font-weight: 600">
+    <el-aside width="220px" >
+      <div class="ws-brand" style="padding: 18px 16px; font-size: 18px; font-weight: 600">
         🗄️ Velero
-        <div style="font-size: 12px; color: #8fa4b8; font-weight: 400">gimpo dashboard</div>
+        <div class="ws-brand-subtitle" style="font-size: 12px; font-weight: 400">gimpo dashboard</div>
       </div>
       <el-menu
         :default-active="activeRoute"
         router
-        background-color="#1f2d3d"
-        text-color="#c0ccda"
-        active-text-color="#ffd04b"
       >
         <el-menu-item index="/overview"><el-icon><Odometer /></el-icon>개요</el-menu-item>
         <el-menu-item index="/health"><el-icon><FirstAidKit /></el-icon>상태 점검</el-menu-item>
@@ -24,7 +21,7 @@
 
     <el-container>
       <el-header
-        style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #ebeef5"
+        style="display: flex; align-items: center; justify-content: space-between"
       >
         <span style="font-weight: 600">백업 · 복구 관리</span>
         <el-tag v-if="status?.serverVersion" type="success" effect="plain">
@@ -33,7 +30,7 @@
         <el-tag v-else type="info" effect="plain">서버 상태 조회 중…</el-tag>
       </el-header>
 
-      <el-main style="background: #f5f7fa">
+      <el-main>
         <router-view />
       </el-main>
     </el-container>

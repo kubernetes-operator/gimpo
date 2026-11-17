@@ -20,7 +20,7 @@
       <el-select v-model="s.minute" style="width: 90px">
         <el-option v-for="m in 60" :key="m - 1" :label="`${m - 1}분`" :value="m - 1" />
       </el-select>
-      <span style="color: #909399; font-size: 12px">(한국 시간)</span>
+      <span style="color: var(--ws-muted); font-size: 12px">(한국 시간)</span>
     </div>
     <el-input
       v-else
@@ -37,15 +37,15 @@
       title="기존 일정이 UTC 기준이라 한국 시간으로 바꿔 표시했습니다. 저장하면 한국 시간 표기로 바뀌며 실제 실행 시각은 같습니다."
     />
 
-    <div style="margin-top: 8px; font-size: 12px; color: #606266">
-      <span v-if="previewError" style="color: #f56c6c">{{ previewError }}</span>
+    <div style="margin-top: 8px; font-size: 12px; color: var(--ws-text)">
+      <span v-if="previewError" style="color: var(--ws-danger)">{{ previewError }}</span>
       <template v-else-if="preview.length">
         다음 실행:
         <el-tag v-for="p in preview" :key="p" size="small" type="info" style="margin-right: 4px">
           {{ fmtTime(p) }}
         </el-tag>
       </template>
-      <span style="margin-left: 6px; color: #c0c4cc">{{ modelValue }}</span>
+      <span style="margin-left: 6px; color: var(--ws-muted)">{{ modelValue }}</span>
     </div>
   </div>
 </template>

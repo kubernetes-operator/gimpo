@@ -53,7 +53,7 @@
               유지만 <span class="hint">— 백업 목록에는 남지만 새 스케줄 이력에는 안 보임, 보관 기간 후 자동 삭제</span>
             </el-radio>
             <el-radio value="delete">
-              <span style="color: #f56c6c">삭제</span>
+              <span style="color: var(--ws-danger)">삭제</span>
               <span class="hint">— 기존 백업 {{ oldBackupCount }}개를 저장소에서 지움. 되돌릴 수 없음</span>
             </el-radio>
           </el-radio-group>
@@ -128,7 +128,7 @@ async function save() {
           : `기존 백업 ${oldBackupCount.value}개는 유지되지만 새 이름의 이력에는 보이지 않습니다.`;
     await ElMessageBox.confirm(
       `<p>스케줄 <code>${name}</code> → <code>${form.newName}</code></p><p>${what}</p>` +
-        (s.gimpo?.helmManaged ? '<p style="color:#e6a23c">Helm values 의 이름도 함께 바꿔야 중복 실행을 막을 수 있습니다.</p>' : ''),
+        (s.gimpo?.helmManaged ? '<p style="color:var(--ws-warning)">Helm values 의 이름도 함께 바꿔야 중복 실행을 막을 수 있습니다.</p>' : ''),
       '실제 이름 변경 확인',
       {
         type: form.oldBackups === 'delete' ? 'error' : 'warning',
@@ -163,13 +163,13 @@ async function save() {
 
 <style scoped>
 .rename-box {
-  border: 1px dashed #e6a23c;
+  border: 1px dashed var(--ws-warning);
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 8px;
 }
 .hint {
-  color: #909399;
+  color: var(--ws-muted);
   font-size: 12px;
 }
 </style>

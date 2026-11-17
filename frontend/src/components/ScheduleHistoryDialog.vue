@@ -11,10 +11,10 @@
         :disabled="!previousNames.length"
         active-text="이전 이름의 백업도 보기"
       />
-      <span v-if="previousNames.length" style="font-size: 12px; color: #909399">
+      <span v-if="previousNames.length" style="font-size: 12px; color: var(--ws-muted)">
         연결된 이전 이름: {{ previousNames.join(', ') }}
       </span>
-      <span v-else style="font-size: 12px; color: #c0c4cc">연결된 이전 이름 없음</span>
+      <span v-else style="font-size: 12px; color: var(--ws-muted)">연결된 이전 이름 없음</span>
     </div>
     <el-table :data="rows" v-loading="loading" size="small" stripe max-height="60vh">
       <el-table-column prop="metadata.name" label="백업" min-width="260" show-overflow-tooltip />

@@ -18,9 +18,9 @@
       </el-table-column>
       <el-table-column label="errors/warnings" width="140">
         <template #default="{ row }">
-          <span :style="{ color: row.status?.errors ? '#f56c6c' : '#909399' }">{{ row.status?.errors ?? 0 }}</span>
+          <span :style="{ color: row.status?.errors ? 'var(--ws-danger)' : 'var(--ws-muted)' }">{{ row.status?.errors ?? 0 }}</span>
           /
-          <span :style="{ color: row.status?.warnings ? '#e6a23c' : '#909399' }">{{ row.status?.warnings ?? 0 }}</span>
+          <span :style="{ color: row.status?.warnings ? 'var(--ws-warning)' : 'var(--ws-muted)' }">{{ row.status?.warnings ?? 0 }}</span>
         </template>
       </el-table-column>
       <el-table-column label="스토리지" width="140" prop="spec.storageLocation" />

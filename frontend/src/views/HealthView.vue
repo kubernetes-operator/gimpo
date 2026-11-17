@@ -3,7 +3,7 @@
     <div class="page-header">
       <h2>상태 점검</h2>
       <div class="toolbar">
-        <span v-if="report" style="font-size: 12px; color: #909399; margin-right: 8px">
+        <span v-if="report" style="font-size: 12px; color: var(--ws-muted); margin-right: 8px">
           점검 시각 {{ fmtTime(report.checkedAt) }} · 1분마다 자동 갱신
         </span>
         <el-button :icon="Refresh" :loading="loading" @click="load(true)">지금 점검</el-button>
@@ -34,7 +34,7 @@
             <el-table-column prop="name" label="항목" min-width="170" show-overflow-tooltip />
             <el-table-column prop="message" label="내용" min-width="220">
               <template #default="{ row }">
-                <span :style="{ color: row.status === 'fail' ? '#f56c6c' : row.status === 'warn' ? '#e6a23c' : '#606266' }">
+                <span :style="{ color: row.status === 'fail' ? 'var(--ws-danger)' : row.status === 'warn' ? 'var(--ws-warning)' : 'var(--ws-text)' }">
                   {{ row.message }}
                 </span>
               </template>
@@ -49,7 +49,7 @@
           <div v-for="s in report?.schedules ?? []" :key="s.name" class="sched">
             <div style="display: flex; justify-content: space-between; align-items: center">
               <b>{{ icon(s.status) }} {{ s.displayName }}</b>
-              <span style="font-size: 12px; color: #909399">{{ describeCron(s.schedule) }}</span>
+              <span style="font-size: 12px; color: var(--ws-muted)">{{ describeCron(s.schedule) }}</span>
             </div>
             <div class="sched-row">
               <span>최근</span>
@@ -62,7 +62,7 @@
             <div class="sched-row"><span>마지막 성공</span><span>{{ fmtTime(s.lastSuccessAt) }}</span></div>
             <div class="sched-row"><span>다음 실행</span><span>{{ s.paused ? '일시정지' : fmtTime(s.nextRun) }}</span></div>
             <div class="sched-row"><span>저장 위치</span><span>{{ s.storageLocation || '(기본)' }}</span></div>
-            <div style="font-size: 12px; margin-top: 2px" :style="{ color: s.status === 'ok' ? '#67c23a' : s.status === 'warn' ? '#e6a23c' : '#f56c6c' }">
+            <div style="font-size: 12px; margin-top: 2px" :style="{ color: s.status === 'ok' ? 'var(--ws-success)' : s.status === 'warn' ? 'var(--ws-warning)' : 'var(--ws-danger)' }">
               {{ s.message }}
             </div>
           </div>
@@ -79,7 +79,7 @@
             <el-tag size="small" :type="rt?.config.enabled ? 'success' : 'info'" style="margin-left: 6px">
               {{ rt?.config.enabled ? '켜짐' : '꺼짐' }}
             </el-tag>
-            <span v-if="rt?.config.enabled && rt?.nextRuns?.[0]" style="font-size: 12px; color: #909399; margin-left: 8px">
+            <span v-if="rt?.config.enabled && rt?.nextRuns?.[0]" style="font-size: 12px; color: var(--ws-muted); margin-left: 8px">
               다음 실행 {{ fmtTime(rt.nextRuns[0]) }}
             </span>
           </span>
@@ -103,8 +103,8 @@
           <b>{{ shownRun.status === 'running' ? '진행 중' : '최근 실행' }}</b>
           <el-tag size="small" :type="runTag(shownRun.status)" style="margin: 0 6px">{{ runLabel(shownRun.status) }}</el-tag>
           {{ fmtTime(shownRun.startedAt) }}
-          <span v-if="shownRun.durationSec" style="color: #909399"> · {{ shownRun.durationSec }}초</span>
-          <span v-if="shownRun.marker" style="color: #909399"> · 테스트 데이터 "{{ shownRun.marker.content }}"</span>
+          <span v-if="shownRun.durationSec" style="color: var(--ws-muted)"> · {{ shownRun.durationSec }}초</span>
+          <span v-if="shownRun.marker" style="color: var(--ws-muted)"> · 테스트 데이터 "{{ shownRun.marker.content }}"</span>
         </div>
         <el-steps :active="activeStep(shownRun)" finish-status="success" align-center>
           <el-step
@@ -124,13 +124,13 @@
             <div style="padding: 4px 24px">
               <div v-for="st in row.steps" :key="st.key" style="font-size: 12px; line-height: 1.8">
                 {{ stepIcon(st.status) }} <b>{{ st.name }}</b>
-                <span style="color: #909399"> {{ st.message }}</span>
+                <span style="color: var(--ws-muted)"> {{ st.message }}</span>
               </div>
-              <div v-if="row.marker" style="font-size: 12px; color: #909399; margin-top: 4px">
+              <div v-if="row.marker" style="font-size: 12px; color: var(--ws-muted); margin-top: 4px">
                 데이터 "{{ row.marker.content }}" · sha256 원본 {{ row.marker.blobSha?.slice(0, 16) }}… / 복구
                 {{ row.marker.restoredBlobSha?.slice(0, 16) ?? '-' }}…
               </div>
-              <div style="font-size: 12px; color: #909399">백업 {{ row.backupName }} · 복구 {{ row.restoreName }}</div>
+              <div style="font-size: 12px; color: var(--ws-muted)">백업 {{ row.backupName }} · 복구 {{ row.restoreName }}</div>
             </div>
           </template>
         </el-table-column>
@@ -328,7 +328,7 @@ onBeforeUnmount(() => clearTimeout(timer));
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #606266;
+  color: var(--ws-text);
   line-height: 1.7;
 }
 </style>
