@@ -4,6 +4,7 @@ import { config } from '../config';
 import { intervalMs, nextRuns, prevRun } from '../util/cron';
 import { store } from '../restoretest/store';
 import { decorate } from '../routes/schedules';
+import { planCleanup, lastCleanup } from '../cleanup/maintenanceJobs';
 import type { Backup, CustomResource, Schedule } from '../types/velero';
 
 /**
@@ -268,6 +269,35 @@ async function operationChecks(): Promise<Check[]> {
       id: 'repo-maintenance',
       category: '작업',
       name: '저장소 정리(maintenance) 잡',
+      status: 'warn',
+      message: `조회 실패: ${(e as Error).message}`,
+    });
+  }
+
+  try {
+    const plan = await planCleanup();
+    const last = lastCleanup();
+    const pending = plan.orphan.length + plan.excess.length;
+    const lastMsg = last
+      ? last.error
+        ? ` · 마지막 정리 실패: ${last.error}`
+        : ` · 마지막 정리 ${kst(new Date(last.at).getTime())} (${last.deleted}개 삭제)`
+      : '';
+    out.push({
+      id: 'maintenance-job-cleanup',
+      category: '작업',
+      name: '끝난 정리 잡 자동 정리',
+      status: last?.error ? 'warn' : pending > 50 ? 'warn' : 'ok',
+      message:
+        (pending
+          ? `정리 대상 ${pending}개 (주인 없음 ${plan.orphan.length}, 초과 ${plan.excess.length}) — 1시간마다 자동 삭제`
+          : `정리 대상 없음 (저장소당 최근 ${plan.keep}개 유지, 전체 ${plan.total}개)`) + lastMsg,
+    });
+  } catch (e) {
+    out.push({
+      id: 'maintenance-job-cleanup',
+      category: '작업',
+      name: '끝난 정리 잡 자동 정리',
       status: 'warn',
       message: `조회 실패: ${(e as Error).message}`,
     });
