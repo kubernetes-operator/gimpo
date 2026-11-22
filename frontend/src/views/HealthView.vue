@@ -84,8 +84,8 @@
             </span>
           </span>
           <span>
-            <el-button size="small" @click="cfgVisible = true">설정</el-button>
-            <el-button size="small" type="primary" :loading="!!rt?.running" @click="runNow">
+            <el-button v-if="canWrite" size="small" @click="cfgVisible = true">설정</el-button>
+            <el-button v-if="canWrite" size="small" type="primary" :loading="!!rt?.running" @click="runNow">
               {{ rt?.running ? '실행 중…' : '지금 실행' }}
             </el-button>
           </span>
@@ -191,13 +191,16 @@
       </el-form>
       <template #footer>
         <el-button @click="cfgVisible = false">취소</el-button>
-        <el-button type="primary" :loading="savingCfg" @click="saveCfg">저장</el-button>
+        <el-button v-if="canWrite" type="primary" :loading="savingCfg" @click="saveCfg">저장</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed as accessComputed } from 'vue';
+import { webAccess } from '@/web-access';
+const canWrite = accessComputed(() => webAccess.role === 'admin');
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { Refresh } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';

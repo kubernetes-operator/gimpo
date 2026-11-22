@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gimpo-web-accounts
+  namespace: velero
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: nfs-nas-sc-main
+  resources:
+    requests:
+      storage: 1Gi

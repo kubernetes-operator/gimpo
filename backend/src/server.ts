@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import Fastify from 'fastify';
+import { installWebAccess, type WebOptions } from './access/web_access';
 import { config } from './config';
 import backupRoutes from './routes/backups';
 import restoreRoutes from './routes/restores';
@@ -9,10 +10,11 @@ import locationRoutes from './routes/locations';
 import repoRoutes from './routes/repos';
 import clusterRoutes from './routes/cluster';
 import healthRoutes from './routes/health';
+import overviewRoutes from './routes/overview';
 import restoreTestRoutes from './routes/restoretest';
 import { startRestoreTestScheduler } from './restoretest/scheduler';
 
-export async function buildServer() {
+export async function buildServer(webOptions: WebOptions = {}) {
   const app = Fastify({ logger: { level: config.logLevel } });
 
   // 헬스체크 (liveness/readiness)
@@ -36,6 +38,8 @@ export async function buildServer() {
     reply.code(status).send({ error: message, reason: anyErr.body?.reason });
   });
 
+  installWebAccess(app,webOptions);
+
   // Velero API 라우트
   await app.register(backupRoutes);
   await app.register(restoreRoutes);
@@ -44,6 +48,7 @@ export async function buildServer() {
   await app.register(repoRoutes);
   await app.register(clusterRoutes);
   await app.register(healthRoutes);
+  await app.register(overviewRoutes);
   await app.register(restoreTestRoutes);
 
   // 프로덕션: SPA 정적 서빙 + 클라이언트 라우팅 fallback

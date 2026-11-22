@@ -4,7 +4,7 @@
       <h2>스케줄</h2>
       <div class="toolbar">
         <el-button :icon="Refresh" @click="load">새로고침</el-button>
-        <el-button type="primary" :icon="Plus" @click="openCreate">스케줄 생성</el-button>
+        <el-button v-if="canWrite" type="primary" :icon="Plus" @click="openCreate">스케줄 생성</el-button>
       </div>
     </div>
 
@@ -44,14 +44,14 @@
       </el-table-column>
       <el-table-column label="작업" width="400" fixed="right">
         <template #default="{ row }">
-          <el-button size="small" type="primary" plain @click="openEdit(row)">편집</el-button>
+          <el-button v-if="canWrite" size="small" type="primary" plain @click="openEdit(row)">편집</el-button>
           <el-button size="small" @click="openHistory(row)">이력</el-button>
           <el-button size="small" @click="showYaml(row)">YAML</el-button>
-          <el-button size="small" type="warning" @click="togglePause(row)">
+          <el-button v-if="canWrite" size="small" type="warning" @click="togglePause(row)">
             {{ row.spec?.paused ? '재개' : '일시중지' }}
           </el-button>
-          <el-button size="small" type="primary" @click="trigger(row)">즉시 실행</el-button>
-          <el-button size="small" type="danger" @click="del(row)">삭제</el-button>
+          <el-button v-if="canWrite" size="small" type="primary" @click="trigger(row)">즉시 실행</el-button>
+          <el-button v-if="canWrite" size="small" type="danger" @click="del(row)">삭제</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -81,7 +81,7 @@
       <template #footer>
         <el-button @click="previewVisible = true">YAML 미리보기</el-button>
         <el-button @click="createVisible = false">취소</el-button>
-        <el-button type="primary" :loading="submitting" @click="submit">생성</el-button>
+        <el-button v-if="canWrite" type="primary" :loading="submitting" @click="submit">생성</el-button>
       </template>
     </el-dialog>
 
@@ -93,6 +93,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed as accessComputed } from 'vue';
+import { webAccess } from '@/web-access';
+const canWrite = accessComputed(() => webAccess.role === 'admin');
 import { computed, onMounted, reactive, ref } from 'vue';
 import { Refresh, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';

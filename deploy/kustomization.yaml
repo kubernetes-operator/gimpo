@@ -7,3 +7,4 @@ resources:
   - service.yaml
   - httproute.yaml
   - restore-test.yaml
+  - web-accounts.yaml

@@ -9,13 +9,13 @@
         :default-active="activeRoute"
         router
       >
-        <el-menu-item index="/overview"><el-icon><Odometer /></el-icon>개요</el-menu-item>
-        <el-menu-item index="/health"><el-icon><FirstAidKit /></el-icon>상태 점검</el-menu-item>
-        <el-menu-item index="/backups"><el-icon><Files /></el-icon>백업</el-menu-item>
-        <el-menu-item index="/restores"><el-icon><RefreshLeft /></el-icon>복구</el-menu-item>
-        <el-menu-item index="/schedules"><el-icon><Timer /></el-icon>스케줄</el-menu-item>
-        <el-menu-item index="/storage"><el-icon><Coin /></el-icon>스토리지 위치</el-menu-item>
-        <el-menu-item index="/repositories"><el-icon><Box /></el-icon>리포지토리/볼륨</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('overview')" data-ws-page="/overview" index="/overview"><el-icon><Odometer /></el-icon>개요</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('health')" data-ws-page="/health" index="/health"><el-icon><FirstAidKit /></el-icon>상태 점검</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('backups')" data-ws-page="/backups" index="/backups"><el-icon><Files /></el-icon>백업</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('restores')" data-ws-page="/restores" index="/restores"><el-icon><RefreshLeft /></el-icon>복구</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('schedules')" data-ws-page="/schedules" index="/schedules"><el-icon><Timer /></el-icon>스케줄</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('storage')" data-ws-page="/storage" index="/storage"><el-icon><Coin /></el-icon>스토리지 위치</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('repositories')" data-ws-page="/repositories" index="/repositories"><el-icon><Box /></el-icon>리포지토리/볼륨</el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -41,12 +41,14 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { api, type ServerStatus } from '@/api/client';
+import { webAccess } from '@/web-access';
 
 const route = useRoute();
 const activeRoute = computed(() => route.path);
 const status = ref<ServerStatus | null>(null);
 
 onMounted(async () => {
+  if (!webAccess.pages.includes('overview')) return;
   try {
     status.value = await api.serverStatus();
   } catch {
