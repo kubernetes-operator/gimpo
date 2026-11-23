@@ -10,6 +10,9 @@
 
 ## 문서
 
+- 📄 [상세 설명서](docs/PRODUCT_DETAIL.md) — 제품 소개, 핵심 가치, 기능 상세, 도입 효과
+- ⚙️ [기술 설명서](docs/TECHNICAL_SPEC.md) — 아키텍처, 모듈, API, 알고리즘, 데이터 모델, RBAC, 검증 기록
+- 🗞️ [제품 브로슈어](docs/brochure.html) — 한 장짜리 소개 페이지(HTML)
 - 📘 [사용 설명서](docs/USER_GUIDE.md) — 화면별 사용법, 자주 하는 일
 - 🛠️ [운영 매뉴얼](docs/OPERATIONS_MANUAL.md) — 백업 설계, 상태 점검 기준, 장애 대응, 복구·**etcd 롤백** 절차, 배포·보안
 - 🗄️ [Velero 재설치·장애 기록](deploy/velero/README.md)

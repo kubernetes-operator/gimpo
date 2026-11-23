@@ -1,7 +1,7 @@
 # gimpo 운영 매뉴얼
 
 > 대상: 랩 클러스터 백업·복구를 운영하는 관리자
-> 함께 보기: [사용 설명서](USER_GUIDE.md) · [Velero 재설치·장애 기록](../deploy/velero/README.md)
+> 함께 보기: [사용 설명서](USER_GUIDE.md) · [상세 설명서](PRODUCT_DETAIL.md) · [기술 설명서](TECHNICAL_SPEC.md) · [Velero 재설치·장애 기록](../deploy/velero/README.md)
 
 ---
 
