@@ -25,7 +25,7 @@
         </el-table-column>
         <el-table-column label="작업" width="200" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" :disabled="row.spec?.default" @click="setDefault(row)">기본으로</el-button>
+            <el-button v-if="canWrite" size="small" :disabled="row.spec?.default" @click="setDefault(row)">기본으로</el-button>
             <el-button size="small" @click="showYaml(row)">YAML</el-button>
           </template>
         </el-table-column>
@@ -50,6 +50,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed as accessComputed } from 'vue';
+import { webAccess } from '@/web-access';
+const canWrite = accessComputed(() => webAccess.role === 'admin');
 import { onMounted, ref } from 'vue';
 import { Refresh } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';

@@ -11,3 +11,6 @@ coverage/
 kubeconfig
 *.kubeconfig
 .kube/
+
+# 로컬 개발에서 생성되는 독립 웹 계정 저장소
+.web-standard/

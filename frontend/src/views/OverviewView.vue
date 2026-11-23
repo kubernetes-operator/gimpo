@@ -19,25 +19,26 @@
       </template>
     </el-alert>
 
+    <el-alert v-if="stats?.errors.length" :title="'일부 현황을 불러오지 못했습니다: '+stats.errors.join(', ')" type="warning" :closable="false" />
     <div class="stat-cards">
       <el-card shadow="hover">
         <div style="font-size: 13px; color: var(--ws-muted)">백업</div>
-        <div style="font-size: 28px; font-weight: 700">{{ backups.length }}</div>
-        <div style="font-size: 12px; color: var(--ws-success)">완료 {{ count(backups, 'Completed') }}</div>
+        <div style="font-size: 28px; font-weight: 700">{{ stats?.backups.total ?? 0 }}</div>
+        <div style="font-size: 12px; color: var(--ws-success)">완료 {{ stats?.backups.completed ?? 0 }}</div>
       </el-card>
       <el-card shadow="hover">
         <div style="font-size: 13px; color: var(--ws-muted)">복구</div>
-        <div style="font-size: 28px; font-weight: 700">{{ restores.length }}</div>
-        <div style="font-size: 12px; color: var(--ws-success)">완료 {{ count(restores, 'Completed') }}</div>
+        <div style="font-size: 28px; font-weight: 700">{{ stats?.restores.total ?? 0 }}</div>
+        <div style="font-size: 12px; color: var(--ws-success)">완료 {{ stats?.restores.completed ?? 0 }}</div>
       </el-card>
       <el-card shadow="hover">
         <div style="font-size: 13px; color: var(--ws-muted)">스케줄</div>
-        <div style="font-size: 28px; font-weight: 700">{{ schedules.length }}</div>
+        <div style="font-size: 28px; font-weight: 700">{{ stats?.schedules.total ?? 0 }}</div>
       </el-card>
       <el-card shadow="hover">
         <div style="font-size: 13px; color: var(--ws-muted)">스토리지 위치</div>
-        <div style="font-size: 28px; font-weight: 700">{{ bsl.length }}</div>
-        <div style="font-size: 12px; color: var(--ws-success)">가용 {{ count(bsl, 'Available') }}</div>
+        <div style="font-size: 28px; font-weight: 700">{{ stats?.storage.total ?? 0 }}</div>
+        <div style="font-size: 12px; color: var(--ws-success)">가용 {{ stats?.storage.available ?? 0 }}</div>
       </el-card>
     </div>
 
@@ -69,45 +70,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { Refresh } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
-import { api, type CR, type HealthReport, type ServerStatus } from '@/api/client';
+import { api, type CR, type HealthReport, type ServerStatus, type OverviewSummary } from '@/api/client';
 import PhaseTag from '@/components/PhaseTag.vue';
 import { fmtTime } from '@/utils/format';
 
-const backups = ref<CR[]>([]);
-const restores = ref<CR[]>([]);
-const schedules = ref<CR[]>([]);
-const bsl = ref<CR[]>([]);
+const stats=ref<OverviewSummary|null>(null);
+const recent=ref<CR[]>([]);
 const status = ref<ServerStatus | null>(null);
-const health = ref<HealthReport | null>(null);
+const health = ref<Pick<HealthReport,'overall'|'counts'> | null>(null);
 const router = useRouter();
-
-const count = (arr: CR[], phase: string) =>
-  arr.filter((x) => x.status?.phase === phase).length;
-
-const recent = computed(() =>
-  [...backups.value]
-    .sort((a, b) =>
-      (b.metadata?.creationTimestamp ?? '').localeCompare(a.metadata?.creationTimestamp ?? ''),
-    )
-    .slice(0, 8),
-);
-
 async function load() {
-  const [b, r, s, l] = await Promise.all([
-    api.listBackups().catch(() => []),
-    api.listRestores().catch(() => []),
-    api.listSchedules().catch(() => []),
-    api.listBSL().catch(() => []),
-  ]);
-  backups.value = b;
-  restores.value = r;
-  schedules.value = s;
-  bsl.value = l;
-  api.serverStatus().then((v) => (status.value = v)).catch(() => undefined);
-  api.healthReport().then((v) => (health.value = v)).catch(() => undefined);
+  const value=await api.overview();stats.value=value;recent.value=value.backups.recent;
+  api.serverStatus().then(v=>status.value=v).catch(()=>undefined);
+  api.overviewHealth().then(v=>health.value=v).catch(()=>undefined);
 }
 
 onMounted(load);

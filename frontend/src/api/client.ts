@@ -8,6 +8,7 @@ export const http = axios.create({ baseURL: `${import.meta.env.BASE_URL}api`, ti
 http.interceptors.response.use(
   (res) => res,
   (err) => {
+    if(err?.response?.status===401){window.location.assign(`${import.meta.env.BASE_URL}login`);return Promise.reject(err);}
     const msg = err?.response?.data?.error ?? err?.message ?? '요청 실패';
     ElMessage.error(String(msg));
     return Promise.reject(err);
@@ -134,7 +135,10 @@ export interface RestoreTestState {
 }
 
 // ─── API 래퍼 ──────────────────────────────────────────────────────────
+export interface OverviewSummary {backups:{total:number;completed:number;recent:CR[]};restores:{total:number;completed:number};schedules:{total:number};storage:{total:number;available:number};errors:string[];}
 export const api = {
+  overview:()=>http.get<OverviewSummary>('/overview').then(r=>r.data),
+  overviewHealth:()=>http.get<Pick<HealthReport,'overall'|'counts'>>('/overview/health').then(r=>r.data),
   // backups
   listBackups: () => http.get<CR[]>('/backups').then((r) => r.data),
   getBackup: (n: string) => http.get<CR>(`/backups/${n}`).then((r) => r.data),

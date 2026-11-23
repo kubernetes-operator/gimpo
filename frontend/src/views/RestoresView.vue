@@ -4,7 +4,7 @@
       <h2>복구</h2>
       <div class="toolbar">
         <el-button :icon="Refresh" @click="load">새로고침</el-button>
-        <el-button type="primary" :icon="Plus" @click="openCreate()">복구 생성</el-button>
+        <el-button v-if="canWrite" type="primary" :icon="Plus" @click="openCreate()">복구 생성</el-button>
       </div>
     </div>
 
@@ -26,7 +26,7 @@
         <template #default="{ row }">
           <el-button size="small" @click="openLogs(row)">로그</el-button>
           <el-button size="small" @click="showYaml(row)">YAML</el-button>
-          <el-button size="small" type="danger" @click="del(row)">삭제</el-button>
+          <el-button v-if="canWrite" size="small" type="danger" @click="del(row)">삭제</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -111,7 +111,7 @@
       <template #footer>
         <el-button @click="previewVisible = true">YAML 미리보기</el-button>
         <el-button @click="createVisible = false">취소</el-button>
-        <el-button type="primary" :loading="submitting" @click="submit">복구 실행</el-button>
+        <el-button v-if="canWrite" type="primary" :loading="submitting" @click="submit">복구 실행</el-button>
       </template>
     </el-dialog>
 
@@ -125,6 +125,9 @@
 </template>
 
 <script setup lang="ts">
+import { computed as accessComputed } from 'vue';
+import { webAccess } from '@/web-access';
+const canWrite = accessComputed(() => webAccess.role === 'admin');
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { Refresh, Plus } from '@element-plus/icons-vue';
@@ -147,7 +150,7 @@ const completedBackups = computed(() =>
 async function load() {
   loading.value = true;
   try {
-    [restores.value, backups.value] = await Promise.all([api.listRestores(), api.listBackups()]);
+    [restores.value, backups.value] = await Promise.all([api.listRestores(), canWrite.value ? api.listBackups() : Promise.resolve([])]);
   } finally {
     loading.value = false;
   }
@@ -239,6 +242,6 @@ async function del(row: CR) {
 
 onMounted(async () => {
   await load();
-  if (route.query.from) openCreate(String(route.query.from));
+  if (canWrite.value && route.query.from) openCreate(String(route.query.from));
 });
 </script>
