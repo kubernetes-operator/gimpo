@@ -12,7 +12,10 @@ import clusterRoutes from './routes/cluster';
 import healthRoutes from './routes/health';
 import overviewRoutes from './routes/overview';
 import restoreTestRoutes from './routes/restoretest';
+import etcdRoutes from './routes/etcd';
+import { startEtcdCollector } from './etcd/collector';
 import { startRestoreTestScheduler } from './restoretest/scheduler';
+import { startMaintenanceJobCleanup } from './cleanup/maintenanceJobs';
 
 export async function buildServer(webOptions: WebOptions = {}) {
   const app = Fastify({ logger: { level: config.logLevel } });
@@ -50,6 +53,7 @@ export async function buildServer(webOptions: WebOptions = {}) {
   await app.register(healthRoutes);
   await app.register(overviewRoutes);
   await app.register(restoreTestRoutes);
+  await app.register(etcdRoutes);
 
   // 프로덕션: SPA 정적 서빙 + 클라이언트 라우팅 fallback
   if (config.staticDir && fs.existsSync(config.staticDir)) {
@@ -75,6 +79,8 @@ async function main() {
   try {
     await app.listen({ port: config.port, host: config.host });
     if (!config.restoreTest.schedulerDisabled) startRestoreTestScheduler(app.log);
+    if (!config.maintenanceJobCleanupDisabled) startMaintenanceJobCleanup(app.log);
+    startEtcdCollector(app.log);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

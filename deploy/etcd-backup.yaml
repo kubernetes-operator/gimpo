@@ -1,0 +1,177 @@
+# etcd 스냅샷 백업 · 복원 연습 (Kubespray systemd/host 방식 etcd 전제)
+#
+# - gimpo-etcd-snapshot      : 6시간마다 컨트롤 플레인 노드에서 etcd 스냅샷 → 무결성 확인 → SeaweedFS 업로드 → 7일 보관
+# - gimpo-etcd-restore-drill : 매일 05:30 KST 최신 스냅샷을 임시 etcd 에 복원해 검증 (운영 etcd 는 건드리지 않음)
+#
+# 노드의 /usr/local/bin(etcdctl·etcdutl·etcd)과 /etc/etcd.env, /etc/ssl/etcd/ssl 을 읽기 전용으로 마운트해
+# 설치된 etcd 와 같은 버전의 도구를 쓴다. etcd 인증서는 snapshot 잡만 마운트한다(drill 은 인증서 불필요).
+# S3 자격 증명은 Velero 가 쓰는 기존 시크릿 velero/seaweedfs-credentials(key: cloud)를 재사용한다.
+# 결과는 Job 로그 마지막 줄(GIMPO-ETCD-RESULT / GIMPO-ETCD-DRILL)로 남고 대시보드가 이력으로 보관한다.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gimpo-etcd-snapshot
+  namespace: velero
+  labels:
+    app.kubernetes.io/part-of: gimpo-velero-dashboard
+    gimpo.io/etcd-job: snapshot
+spec:
+  schedule: "0 */6 * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 900
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    metadata:
+      labels:
+        gimpo.io/etcd-job: snapshot
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            gimpo.io/etcd-job: snapshot
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - {key: node-role.kubernetes.io/control-plane, operator: Exists}
+          tolerations:
+            - {key: node-role.kubernetes.io/control-plane, operator: Exists, effect: NoSchedule}
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            seccompProfile: {type: RuntimeDefault}
+          containers:
+            - name: snapshot
+              image: registry.local.cloud:5000/gimpo:0.4.0
+              imagePullPolicy: IfNotPresent
+              workingDir: /app
+              command: [node, backend/dist/tools/etcd-tool.js, snapshot]
+              env:
+                - name: NODE_NAME
+                  valueFrom: {fieldRef: {fieldPath: spec.nodeName}}
+                - {name: ETCD_BIN_DIR, value: /host-bin}
+                - {name: ETCD_CERT_DIR, value: /etcd-ssl}
+                - {name: ETCD_ENV_FILE, value: /host-etc/etcd.env}
+                - {name: WORK_DIR, value: /work}
+                - {name: S3_ENDPOINT, value: "http://192.168.78.101:8333"}
+                - {name: S3_REGION, value: us-east-1}
+                - {name: S3_BUCKET, value: etcd-snapshots}
+                - {name: S3_CREDENTIALS_FILE, value: /creds/cloud}
+                - {name: RETENTION_DAYS, value: "7"}
+                - {name: KEEP_MIN, value: "3"}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+                  # 인증서 파일 소유자가 root 가 아닐 수 있어 읽기 전용 우회 권한만 부여
+                  add: [DAC_READ_SEARCH]
+              resources:
+                requests: {cpu: 50m, memory: 128Mi}
+                limits: {cpu: "1", memory: 512Mi}
+              volumeMounts:
+                - {name: host-bin, mountPath: /host-bin, readOnly: true}
+                - {name: etcd-ssl, mountPath: /etcd-ssl, readOnly: true}
+                - {name: etcd-env, mountPath: /host-etc/etcd.env, readOnly: true}
+                - {name: creds, mountPath: /creds, readOnly: true}
+                - {name: work, mountPath: /work}
+          volumes:
+            - name: host-bin
+              hostPath: {path: /usr/local/bin, type: Directory}
+            - name: etcd-ssl
+              hostPath: {path: /etc/ssl/etcd/ssl, type: Directory}
+            - name: etcd-env
+              hostPath: {path: /etc/etcd.env, type: File}
+            - name: creds
+              secret: {secretName: seaweedfs-credentials, defaultMode: 0400}
+            - name: work
+              emptyDir: {sizeLimit: 8Gi}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gimpo-etcd-restore-drill
+  namespace: velero
+  labels:
+    app.kubernetes.io/part-of: gimpo-velero-dashboard
+    gimpo.io/etcd-job: drill
+spec:
+  schedule: "30 5 * * *"
+  timeZone: Asia/Seoul
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 900
+  successfulJobsHistoryLimit: 5
+  failedJobsHistoryLimit: 5
+  jobTemplate:
+    metadata:
+      labels:
+        gimpo.io/etcd-job: drill
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 1800
+      ttlSecondsAfterFinished: 604800
+      template:
+        metadata:
+          labels:
+            gimpo.io/etcd-job: drill
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          enableServiceLinks: false
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - {key: node-role.kubernetes.io/control-plane, operator: Exists}
+          tolerations:
+            - {key: node-role.kubernetes.io/control-plane, operator: Exists, effect: NoSchedule}
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            runAsNonRoot: true
+            fsGroup: 1000
+            seccompProfile: {type: RuntimeDefault}
+          containers:
+            - name: drill
+              image: registry.local.cloud:5000/gimpo:0.4.0
+              imagePullPolicy: IfNotPresent
+              workingDir: /app
+              command: [node, backend/dist/tools/etcd-tool.js, drill]
+              env:
+                - name: NODE_NAME
+                  valueFrom: {fieldRef: {fieldPath: spec.nodeName}}
+                - {name: ETCD_BIN_DIR, value: /host-bin}
+                - {name: WORK_DIR, value: /work}
+                - {name: S3_ENDPOINT, value: "http://192.168.78.101:8333"}
+                - {name: S3_REGION, value: us-east-1}
+                - {name: S3_BUCKET, value: etcd-snapshots}
+                - {name: S3_CREDENTIALS_FILE, value: /creds/cloud}
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities: {drop: [ALL]}
+              resources:
+                requests: {cpu: 100m, memory: 256Mi}
+                limits: {cpu: "2", memory: 2Gi}
+              volumeMounts:
+                - {name: host-bin, mountPath: /host-bin, readOnly: true}
+                - {name: creds, mountPath: /creds, readOnly: true}
+                - {name: work, mountPath: /work}
+          volumes:
+            - name: host-bin
+              hostPath: {path: /usr/local/bin, type: Directory}
+            - name: creds
+              secret: {secretName: seaweedfs-credentials, defaultMode: 0440}
+            - name: work
+              emptyDir: {sizeLimit: 8Gi}

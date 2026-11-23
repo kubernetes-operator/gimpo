@@ -134,6 +134,35 @@ export interface RestoreTestState {
   history: RestoreTestRun[];
 }
 
+// ─── etcd ──────────────────────────────────────────────────────────────
+export interface EtcdMember { id: string; name: string; peerURLs: string[]; clientURLs: string[] }
+export interface EtcdEndpoint { endpoint: string; memberId: string; version: string; dbSize: number; leader: boolean; raftTerm: number; raftIndex: number; revision: number; errors: string[] }
+export interface EtcdSnapshot {
+  kind: 'snapshot'; status: 'success' | 'failed'; name?: string; jobName: string; trigger: 'schedule' | 'manual';
+  startedAt: string; finishedAt?: string; durationMs?: number; node: string; etcdVersion?: string;
+  sizeBytes?: number; sha256?: string; revision?: number; totalKey?: number; liveNamespaces?: number;
+  members?: EtcdMember[]; endpoints?: EtcdEndpoint[]; s3?: { endpoint: string; bucket: string; key: string };
+  retention?: { days: number; keepMin: number; deleted: string[] };
+  inventory?: { count: number; totalBytes: number; oldest?: string; newest?: string }; error?: string;
+}
+export interface EtcdDrill {
+  kind: 'drill'; status: 'success' | 'failed'; snapshot?: string; jobName: string; trigger: 'schedule' | 'manual';
+  startedAt: string; finishedAt?: string; durationMs?: number; node: string; sizeBytes?: number;
+  checks: Array<{ name: string; ok: boolean; level: 'required' | 'info'; detail: string }>; error?: string;
+}
+export interface EtcdCron { name: string; kind: 'snapshot' | 'drill'; installed: boolean; schedule?: string; timeZone?: string; suspend?: boolean; lastScheduleTime?: string; lastSuccessfulTime?: string; nextRuns: string[] }
+export interface EtcdState {
+  crons: EtcdCron[];
+  running: Array<{ name: string; kind?: 'snapshot' | 'drill'; trigger: string; startedAt?: string }>;
+  snapshots: EtcdSnapshot[]; drills: EtcdDrill[]; latest: EtcdSnapshot | null; lastSuccess: EtcdSnapshot | null;
+  members: EtcdMember[]; endpoints: EtcdEndpoint[];
+  inventory: { count: number; totalBytes: number; oldest?: string; newest?: string } | null;
+}
+export interface EtcdRunbook {
+  snapshot: string; createdAt: string; revision?: number; sha256?: string; s3Uri: string; dataDir: string; token: string;
+  initialCluster: string; nodes: Array<{ name: string; host: string; peerURL: string; script: string }>; markdown: string; warnings: string[];
+}
+
 // ─── API 래퍼 ──────────────────────────────────────────────────────────
 export interface OverviewSummary {backups:{total:number;completed:number;recent:CR[]};restores:{total:number;completed:number};schedules:{total:number};storage:{total:number;available:number};errors:string[];}
 export const api = {
@@ -200,4 +229,11 @@ export const api = {
   listNamespaces: () => http.get<NamespaceInfo[]>('/namespaces').then((r) => r.data),
   listApiResources: () => http.get<ApiResource[]>('/api-resources').then((r) => r.data),
   serverStatus: () => http.get<ServerStatus>('/server-status').then((r) => r.data),
+
+  // etcd
+  etcd: () => http.get<EtcdState>('/etcd').then((r) => r.data),
+  etcdSnapshotNow: () => http.post('/etcd/snapshot').then((r) => r.data),
+  etcdDrillNow: (snapshot?: string) => http.post('/etcd/drill', snapshot ? { snapshot } : {}).then((r) => r.data),
+  etcdRunbook: (snapshot?: string) =>
+    http.get<EtcdRunbook>('/etcd/runbook', { params: snapshot ? { snapshot } : {} }).then((r) => r.data),
 };
