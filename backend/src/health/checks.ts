@@ -5,6 +5,7 @@ import { intervalMs, nextRuns, prevRun } from '../util/cron';
 import { store } from '../restoretest/store';
 import { decorate } from '../routes/schedules';
 import { planCleanup, lastCleanup } from '../cleanup/maintenanceJobs';
+import { cronInfo, readHistory } from '../etcd/collector';
 import type { Backup, CustomResource, Schedule } from '../types/velero';
 
 /**
@@ -16,7 +17,7 @@ export type Level = 'ok' | 'warn' | 'fail';
 
 export interface Check {
   id: string;
-  category: '서버' | '저장소' | '스케줄' | '작업' | '복구 테스트';
+  category: '서버' | '저장소' | '스케줄' | '작업' | '복구 테스트' | 'etcd';
   name: string;
   status: Level;
   message: string;
@@ -327,6 +328,67 @@ async function restoreTestCheck(): Promise<Check> {
   };
 }
 
+/** etcd 스냅샷·멤버·복원 연습 점검 (CronJob 이 아직 설치되지 않았으면 안내만) */
+async function etcdChecks(): Promise<Check[]> {
+  const out: Check[] = [];
+  const crons = await cronInfo();
+  const snapCron = crons.find((c) => c.kind === 'snapshot');
+  const drillCron = crons.find((c) => c.kind === 'drill');
+  if (!snapCron?.installed) {
+    return [{ id: 'etcd-snapshot', category: 'etcd', name: 'etcd 스냅샷', status: 'warn', message: '아직 설치되지 않음(deploy/etcd-backup.yaml)' }];
+  }
+  const { snapshots, drills } = await readHistory();
+  const last = snapshots[0];
+  const lastOk = snapshots.find((x) => x.status === 'success');
+  const raw = snapCron.timeZone ? `CRON_TZ=${snapCron.timeZone} ${snapCron.schedule}` : String(snapCron.schedule);
+  const every = intervalMs(raw) ?? 6 * H;
+  const okAge = age(lastOk?.finishedAt);
+  out.push({
+    id: 'etcd-snapshot',
+    category: 'etcd',
+    name: 'etcd 스냅샷',
+    status: snapCron.suspend ? 'warn' : !lastOk ? 'warn' : last?.status === 'failed' || okAge > every * 4 ? 'fail' : okAge > every * 1.5 ? 'warn' : 'ok',
+    message: snapCron.suspend
+      ? '스케줄이 일시정지됨'
+      : !last
+        ? '아직 실행 기록 없음 (첫 실행 대기)'
+        : last.status === 'failed'
+          ? `최근 스냅샷 실패: ${last.error ?? ''}`.slice(0, 200)
+          : `최근 성공 ${hrs(okAge)} 전 · ${((lastOk?.sizeBytes ?? 0) / 1048576).toFixed(1)}MB · 보관 ${lastOk?.inventory?.count ?? '-'}개`,
+  });
+  if (lastOk?.members?.length) {
+    const eps = lastOk.endpoints ?? [];
+    const leaders = eps.filter((e) => e.leader).length;
+    const errs = eps.filter((e) => e.errors?.length);
+    const healthy = eps.length === lastOk.members.length && leaders === 1 && errs.length === 0;
+    out.push({
+      id: 'etcd-members',
+      category: 'etcd',
+      name: 'etcd 멤버 (스냅샷 시점)',
+      status: healthy ? 'ok' : 'warn',
+      message: `${eps.length}/${lastOk.members.length} 응답, 리더 ${leaders}개${errs.length ? `, 오류 ${errs.length}개` : ''} · v${lastOk.etcdVersion ?? '-'}`,
+    });
+  }
+  if (drillCron?.installed) {
+    const d = drills[0];
+    const dOk = drills.find((x) => x.status === 'success');
+    out.push({
+      id: 'etcd-drill',
+      category: 'etcd',
+      name: 'etcd 복원 연습',
+      status: drillCron.suspend ? 'warn' : !d ? 'warn' : d.status === 'failed' ? 'fail' : age(dOk?.finishedAt) > 36 * H ? 'warn' : 'ok',
+      message: drillCron.suspend
+        ? '스케줄이 일시정지됨'
+        : !d
+          ? '아직 실행 기록 없음'
+          : d.status === 'failed'
+            ? `최근 연습 실패: ${d.error ?? ''}`.slice(0, 200)
+            : `최근 연습 성공 (${hrs(age(d.finishedAt))} 전, ${d.snapshot})`,
+    });
+  }
+  return out;
+}
+
 export async function buildHealthReport(): Promise<HealthReport> {
   const [srv, sto, ops, rt, schedules, backups] = await Promise.all([
     serverChecks(),
@@ -350,7 +412,10 @@ export async function buildHealthReport(): Promise<HealthReport> {
     status: s.status,
     message: s.message,
   }));
-  const checks = [...srv, ...sto, ...schedChecks, ...ops, rt];
+  const etcd = await etcdChecks().catch((e): Check[] => [
+    { id: 'etcd', category: 'etcd', name: 'etcd 점검', status: 'warn', message: (e as Error).message },
+  ]);
+  const checks = [...srv, ...sto, ...schedChecks, ...ops, rt, ...etcd];
   const counts: Record<Level, number> = { ok: 0, warn: 0, fail: 0 };
   let overall: Level = 'ok';
   for (const c of checks) {

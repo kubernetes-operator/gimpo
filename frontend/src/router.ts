@@ -15,6 +15,7 @@ const router = createRouter({
     { path: '/schedules', name: 'schedules', component: () => import('./views/SchedulesView.vue') },
     { path: '/storage', name: 'storage', component: () => import('./views/StorageView.vue') },
     { path: '/repositories', name: 'repositories', component: () => import('./views/RepositoriesView.vue') },
+    { path: '/etcd', name: 'etcd', component: () => import('./views/EtcdView.vue') },
   ],
 });
 

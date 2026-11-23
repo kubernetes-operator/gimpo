@@ -164,6 +164,7 @@ export function requiredPages(pathname:string):string[]{
  if(pathname.startsWith('/api/auth/')||pathname==='/settings')return ['settings'];
  if(pathname==='/api/overview'||pathname==='/api/overview/health'||pathname==='/api/server-status')return ['overview'];
  if(pathname.startsWith('/api/health/')||pathname.startsWith('/api/restore-test'))return ['health'];
+ if(pathname.startsWith('/api/etcd'))return ['etcd'];
  if(pathname.startsWith('/api/backups'))return ['backups'];
  if(pathname.startsWith('/api/restores'))return ['restores'];
  if(pathname.startsWith('/api/schedules')||pathname.startsWith('/api/cron/'))return ['schedules'];

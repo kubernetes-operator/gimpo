@@ -8,6 +8,34 @@
 - 프론트: Vue 3 + Vite + Element Plus + TypeScript
 - 제어 방식: velero CLI 없이 `velero.io` CRD 를 직접 CRUD
 
+## 문서
+
+- 📘 [사용 설명서](docs/USER_GUIDE.md) — 화면별 사용법, 자주 하는 일
+- 🛠️ [운영 매뉴얼](docs/OPERATIONS_MANUAL.md) — 백업 설계, 상태 점검 기준, 장애 대응, 복구·**etcd 롤백** 절차, 배포·보안
+- 🗄️ [Velero 재설치·장애 기록](deploy/velero/README.md)
+
+## etcd 백업 · 복원 연습
+
+Kubespray systemd(host) 방식 etcd 를 대상으로 `deploy/etcd-backup.yaml` 의 CronJob 2개가 동작한다.
+
+| 잡 | 일정(KST) | 동작 |
+|---|---|---|
+| `gimpo-etcd-snapshot` | 6시간마다 | 컨트롤 플레인 노드의 `etcdctl` 로 스냅샷 → 무결성 확인 → SeaweedFS `etcd-snapshots` 업로드 → 7일 보관(최소 3개) |
+| `gimpo-etcd-restore-drill` | 매일 05:30 | 최신 스냅샷을 임시 etcd 에 복원해 리비전·핵심 키 검증(운영 etcd 무접촉) |
+
+도구는 이미지에 포함된 `backend/dist/tools/etcd-tool.js`(외부 의존성 없는 S3 SigV4 클라이언트 포함)이며, 노드의 etcd 바이너리를 읽기 전용으로 마운트해 버전이 항상 일치한다.
+대시보드 **etcd 백업** 메뉴에서 이력 확인·지금 실행·스냅샷별 **롤백 절차서** 생성을 한다(롤백 실행은 사람이 SSH 로).
+
+| 환경 변수 (etcd-tool) | 기본값 | 설명 |
+|---|---|---|
+| `ETCD_BIN_DIR` | `/host-bin` | 노드 `/usr/local/bin` 마운트 위치 |
+| `ETCD_CERT_DIR` | `/etcd-ssl` | 노드 `/etc/ssl/etcd/ssl` (snapshot 만) |
+| `ETCD_ENV_FILE` | `/host-etc/etcd.env` | 노드 `/etc/etcd.env` |
+| `S3_ENDPOINT` / `S3_BUCKET` | - / `etcd-snapshots` | S3 호환 저장소 |
+| `S3_CREDENTIALS_FILE` | `/creds/cloud` | AWS credentials 형식 파일(기존 시크릿) |
+| `RETENTION_DAYS` / `KEEP_MIN` | `7` / `3` | 보관 기간 / 최소 보관 개수 |
+| `SNAPSHOT_NAME` | (최신) | drill 대상 스냅샷 |
+
 ## 요구 사항
 
 - Node.js 20+ (개발 환경엔 22 권장)

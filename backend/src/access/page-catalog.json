@@ -22,6 +22,7 @@
     "schedules": "스케줄",
     "storage": "스토리지",
     "repositories": "리포지토리",
+    "etcd": "etcd 백업",
     "settings": "개인 설정",
     "users": "사용자 관리"
   },

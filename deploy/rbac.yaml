@@ -46,9 +46,25 @@ rules:
     resources: ["deployments", "daemonsets"]
     verbs: ["get", "list"]
   # 정리(maintenance) 잡: 상태 점검 조회 + 끝난 잡 자동 정리(주인 없는 잡·설정 개수 초과분 삭제)
+  # + etcd 스냅샷/복원 연습 "지금 실행"(CronJob 템플릿으로 Job 생성 — 화면에서는 관리자만 가능)
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["get", "list", "delete"]
+    verbs: ["get", "list", "create", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["cronjobs"]
+    verbs: ["get", "list"]
+  # etcd 잡 결과 수집: Job 파드 로그의 마지막 결과 줄을 읽는다
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # etcd 스냅샷·복원 연습 이력 저장
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["gimpo-etcd"]
+    verbs: ["get", "update", "patch"]
   - apiGroups: [""]
     resources: ["configmaps"]
     verbs: ["create"]

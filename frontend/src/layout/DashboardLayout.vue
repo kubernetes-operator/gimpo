@@ -16,6 +16,7 @@
         <el-menu-item v-if="webAccess.pages.includes('schedules')" data-ws-page="/schedules" index="/schedules"><el-icon><Timer /></el-icon>스케줄</el-menu-item>
         <el-menu-item v-if="webAccess.pages.includes('storage')" data-ws-page="/storage" index="/storage"><el-icon><Coin /></el-icon>스토리지 위치</el-menu-item>
         <el-menu-item v-if="webAccess.pages.includes('repositories')" data-ws-page="/repositories" index="/repositories"><el-icon><Box /></el-icon>리포지토리/볼륨</el-menu-item>
+        <el-menu-item v-if="webAccess.pages.includes('etcd')" data-ws-page="/etcd" index="/etcd"><el-icon><DataBoard /></el-icon>etcd 백업</el-menu-item>
       </el-menu>
     </el-aside>
 
