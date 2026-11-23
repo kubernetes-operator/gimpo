@@ -1,221 +1,246 @@
 <title>gimpo 제품 브로슈어</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;600&family=Noto+Sans+KR:wght@700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: 문서형 브로슈어 — 좁은 본문 폭, 신호등 보드(히어로) → 숫자 → 세 겹 백업 → 밤사이 타임라인(실제 시간 비율) → 증명 단계 → 기능 → 사양 */
+/* Osci Design System 적용 (ADS 기반 토큰). 이 시스템은 라이트 테마만 정의하므로 라이트 단일 테마로 고정한다.
+   Layout: 1024px 본문, 8pt 그리드 — 제품 화면 카드(히어로) → 비교표 → 세 겹 백업 카드 → 밤사이 타임라인(실제 시각 비율) → 검증 → 기능 → 사양 */
 :root {
-  --bg: #f6f8fb;
-  --paper: #ffffff;
-  --ink: #141a24;
-  --muted: #5b6676;
-  --line: #d9dfe7;
-  --accent: #2563eb;
-  --accent-soft: #e6eefe;
-  --ok: #15803d; --ok-bg: #e9f8ef;
-  --warn: #a15c00; --warn-bg: #fff5dc;
-  --bad: #b91c1c; --bad-bg: #fdecec;
-  --board: #0f1722; --board-ink: #dce6f3; --board-line: #243246;
-  --font-display: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'D2Coding', Consolas, monospace;
-  --s1: 4px; --s2: 8px; --s3: 16px; --s4: 24px; --s5: 40px; --s6: 64px;
-  --radius: 10px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0d1117; --paper: #151b24; --ink: #e6ebf2; --muted: #9aa6b6; --line: #2a3442;
-    --accent: #6ea0ff; --accent-soft: #1a2944;
-    --ok: #4ade80; --ok-bg: #12301f; --warn: #fbbf24; --warn-bg: #33270d; --bad: #f87171; --bad-bg: #3a1717;
-    --board: #0a0f16; --board-ink: #dce6f3; --board-line: #223044;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0d1117; --paper: #151b24; --ink: #e6ebf2; --muted: #9aa6b6; --line: #2a3442;
-  --accent: #6ea0ff; --accent-soft: #1a2944;
-  --ok: #4ade80; --ok-bg: #12301f; --warn: #fbbf24; --warn-bg: #33270d; --bad: #f87171; --bad-bg: #3a1717;
-  --board: #0a0f16; --board-ink: #dce6f3; --board-line: #223044;
-  color-scheme: dark;
+  /* Osci DS tokens (project/tokens.css) */
+  --color-N0: #ffffff; --color-N10: #f7f8f9; --color-N20: #f1f2f4; --color-N30: #dddee1; --color-N40: #b7b9be;
+  --color-N50: #8c8f97; --color-N60: #6b6e76; --color-N70: #505258; --color-N900: #172b4d; --color-N1000: #091e42;
+  --color-B50: #e9f2fe; --color-B400: #1868db; --color-B500: #1558bc; --color-B700: #0747a6;
+  --color-R50: #ffedeb; --color-R500: #c9372c; --color-R600: #ae2e24;
+  --color-Y50: #fff7d6; --color-Y400: #fbc828; --color-G50: #dcfff1; --color-G500: #6a9a23;
+  --osci-navy: #142538;
+  --color-bg-default: var(--color-N0);
+  --color-bg-sunken: var(--color-N10);
+  --color-text: var(--color-N1000);
+  --color-text-heading: var(--color-N900);
+  --color-text-subtle: var(--color-N60);
+  --color-text-subtlest: var(--color-N50);
+  --color-border: var(--color-N30);
+  --color-divider: #ebecf0;
+  --color-primary: var(--color-B400);
+  --color-success: var(--color-G500);
+  --color-warning: var(--color-Y400);
+  --color-danger: var(--color-R500);
+  --shadow-raised: 0px 1px 1px rgba(9, 30, 66, 0.25), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  --shadow-overlay: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+  --space-050: 4px; --space-100: 8px; --space-150: 12px; --space-200: 16px; --space-300: 24px;
+  --space-400: 32px; --space-500: 40px; --space-600: 48px; --space-800: 64px;
+  --radius-050: 4px; --radius-100: 8px; --radius-300: 12px; --radius-full: 9999px;
+  --osci-gradient: conic-gradient(from 0deg, #FF66A6 0%, #599CFF 40%, #6BB1FB 75%, #FF66A6 100%);
+  --tracking-eyebrow: 0.06em;
+  /* Type — Atlassian Sans 우선, 한글은 시스템 글꼴로 대체 */
+  --font-sans: "Atlassian Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Atlassian Mono", "JetBrains Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+  --font-heading-xxlarge: 700 32px/36px var(--font-sans);
+  --font-heading-large: 700 24px/28px var(--font-sans);
+  --font-heading-medium: 700 20px/24px var(--font-sans);
+  --font-heading-small: 600 16px/20px var(--font-sans);
+  --font-heading-xsmall: 700 12px/16px var(--font-sans);
+  --font-body-large: 400 16px/24px var(--font-sans);
+  --font-body: 400 14px/20px var(--font-sans);
+  --font-body-small: 400 12px/16px var(--font-sans);
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.65; }
-.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-section { padding-block: var(--s6) 0; }
-h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
-h2 { font-size: clamp(24px, 3.2vw, 32px); font-weight: 900; }
-h3 { font-size: 18px; font-weight: 700; }
+body { background: var(--color-bg-sunken); color: var(--color-text); font: var(--font-body-large); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1024px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+section { padding-block: var(--space-800) 0; }
+h1, h2, h3 { margin: 0; color: var(--color-text-heading); text-wrap: balance; }
+h2 { font: var(--font-heading-large); }
+h3 { font: var(--font-heading-medium); }
 p { margin: 0; }
-.lede { color: var(--muted); max-width: 62ch; margin-top: var(--s2); }
-.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.lede { color: var(--color-text-subtle); max-width: 64ch; margin-top: var(--space-100); }
+.eyebrow { font: var(--font-heading-xsmall); text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); color: var(--color-text-subtle); margin-bottom: var(--space-100); }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+/* Lozenge (ADS) */
+.loz { display: inline-block; font: 700 11px/16px var(--font-sans); text-transform: uppercase; letter-spacing: .02em; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+.loz.done { background: var(--color-G50); color: #216e4e; }
+.loz.info { background: var(--color-B50); color: var(--color-B700); }
+.loz.wait { background: var(--color-Y50); color: #7f5f01; }
+.loz.bad { background: var(--color-R50); color: var(--color-R600); }
+.loz.bold-done { background: var(--color-G500); color: #fff; }
+.loz.bold-info { background: var(--color-B400); color: #fff; }
+
+/* Card (ADS): border 1px, radius 8, shadow-raised, header → divider → body */
+.card { background: var(--color-bg-default); border: 1px solid var(--color-border); border-radius: var(--radius-100); box-shadow: var(--shadow-raised); min-width: 0; }
+.card-head { padding: var(--space-200) var(--space-300); border-bottom: 1px solid var(--color-divider); display: flex; justify-content: space-between; align-items: center; gap: var(--space-100); }
+.card-body { padding: var(--space-200) var(--space-300) var(--space-300); }
+
+/* Brand */
+.brandbar { display: flex; align-items: center; gap: var(--space-150); padding-block: var(--space-400) 0; }
+.appicon { width: 40px; height: 40px; border-radius: var(--radius-300); background: var(--osci-gradient); display: grid; place-items: center; flex-shrink: 0; overflow: hidden; }
+.appicon svg { width: 40px; height: 40px; display: block; }
+.brandbar .name { font: var(--font-heading-small); color: var(--color-text-heading); }
+.brandbar .by { font: var(--font-body-small); color: var(--color-text-subtle); }
 
 /* Hero */
-.hero { padding-block: var(--s6) 0; display: grid; grid-template-columns: 1.05fr 1fr; gap: var(--s5); align-items: center; }
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: var(--space-500); align-items: center; padding-block: var(--space-500) 0; }
 .hero > * { min-width: 0; }
-.brand { display: flex; align-items: baseline; gap: var(--s2); font-family: var(--font-mono); color: var(--muted); font-size: 14px; }
-.brand b { font-family: var(--font-display); font-size: 22px; color: var(--ink); font-weight: 900; }
-.hero h1 { font-size: clamp(32px, 5vw, 52px); font-weight: 900; line-height: 1.2; margin-top: var(--s3); }
-.hero h1 em { font-style: normal; color: var(--accent); }
-.hero .lede { font-size: 17px; margin-top: var(--s3); }
-.pills { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
-.pill { font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.hero h1 { font: var(--font-heading-xxlarge); }
+.hero h1 b { color: var(--color-primary); font-weight: 700; }
+.hero .lede { font: var(--font-body-large); margin-top: var(--space-200); color: var(--color-text-subtle); }
+.tags { display: flex; flex-wrap: wrap; gap: var(--space-100); margin-top: var(--space-300); }
 
-.board { background: var(--board); color: var(--board-ink); border-radius: var(--radius); padding: var(--s4); font-family: var(--font-mono); font-size: 13px; box-shadow: 0 18px 40px rgb(10 20 40 / .18); }
-.board-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s2); padding-bottom: var(--s3); border-bottom: 1px solid var(--board-line); }
-.board-head strong { font-family: var(--font-body); font-size: 15px; }
-.lamp { display: inline-flex; gap: 6px; }
-.lamp i { width: 12px; height: 12px; border-radius: 50%; background: #2b3a50; display: block; }
-.lamp i.on-g { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-.row { display: grid; grid-template-columns: 14px 1fr auto; gap: var(--s2); padding: 9px 0; border-bottom: 1px dashed var(--board-line); align-items: center; }
-.row:last-child { border-bottom: none; }
-.dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; }
-.dot.y { background: #f5b301; }
-.row span:nth-child(2) { font-family: var(--font-body); }
-.row small { color: #8fa3bd; }
-@media (prefers-reduced-motion: no-preference) {
-  .lamp i.on-g { animation: pulse 2.4s ease-in-out infinite; }
-  @keyframes pulse { 50% { box-shadow: 0 0 2px #22c55e; } }
-}
+/* 제품 화면 미리보기 */
+.shot .card-head strong { font: var(--font-heading-small); }
+.msg { display: flex; gap: 10px; padding: 10px 12px; background: var(--color-G50); border-radius: var(--radius-050); border-left: 3px solid var(--color-G500); align-items: flex-start; font: var(--font-body); margin-bottom: var(--space-150); }
+.msg svg { flex-shrink: 0; margin-top: 2px; }
+.srow { display: grid; grid-template-columns: 1fr auto auto; gap: var(--space-150); align-items: center; padding: 9px 0; border-top: 1px solid var(--color-divider); font: var(--font-body); }
+.srow small { color: var(--color-text-subtle); font: var(--font-body-small); }
 
-/* Numbers */
-.compare { margin-top: var(--s4); border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); overflow: hidden; }
-.cmp-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--s3); padding: 14px var(--s4); border-top: 1px solid var(--line); align-items: baseline; }
-.cmp-row:first-child { border-top: none; background: var(--bg); font-size: 12px; letter-spacing: .08em; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; }
-.cmp-row .before { color: var(--bad); }
-.cmp-row .after { color: var(--ok); font-weight: 600; }
-.cmp-row > * { min-width: 0; }
+/* 비교표 */
+.table { margin-top: var(--space-300); overflow: hidden; }
+.trow { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: var(--space-200); padding: 12px var(--space-300); border-top: 1px solid var(--color-divider); align-items: baseline; font: var(--font-body); }
+.trow > * { min-width: 0; }
+.trow.head { border-top: none; font: var(--font-heading-xsmall); text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); color: var(--color-text-subtle); background: var(--color-bg-sunken); }
+.trow .before { color: var(--color-R500); }
+.trow .after { color: var(--color-text); font-weight: 600; }
 
-/* Layers */
-.layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); margin-top: var(--s4); }
-.layer { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--s4); display: flex; flex-direction: column; gap: var(--s2); min-width: 0; }
-.layer .tag { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-.layer dl { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--s3); margin: var(--s2) 0 0; font-size: 14px; }
-.layer dt { color: var(--muted); }
-.layer dd { margin: 0; font-weight: 500; }
-.layer.etcd { border-color: var(--accent); }
+/* 세 겹 백업 */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-200); margin-top: var(--space-300); }
+.layer p { color: var(--color-text-subtle); font: var(--font-body); }
+.layer dl { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--space-200); margin: var(--space-200) 0 0; font: var(--font-body); }
+.layer dt { color: var(--color-text-subtle); }
+.layer dd { margin: 0; font-weight: 600; }
 
-/* Timeline (실제 시간 비율) */
-.tl { margin-top: var(--s4); background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--s4); }
-.tl-scroll { overflow-x: auto; }
-.tl-inner { min-width: 720px; }
-.axis { position: relative; height: 34px; border-bottom: 2px solid var(--line); }
-.axis .tick { position: absolute; bottom: -8px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-.axis .tick::before { content: ""; display: block; width: 1px; height: 8px; background: var(--line); margin: 0 auto 4px; }
-.lane { position: relative; height: 64px; }
-.ev { position: absolute; top: 10px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; width: 110px; }
-.ev b { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 3px solid var(--paper); box-shadow: 0 0 0 1px var(--accent); }
-.ev.etcd b { background: var(--ok); box-shadow: 0 0 0 1px var(--ok); }
-.ev.verify b { background: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
-.ev span { font-size: 12px; line-height: 1.35; }
-.ev .t { font-family: var(--font-mono); color: var(--muted); }
-.lane-label { font-size: 12px; color: var(--muted); font-family: var(--font-mono); margin-top: var(--s3); }
-.legend { display: flex; flex-wrap: wrap; gap: var(--s3); margin-top: var(--s3); font-size: 13px; color: var(--muted); }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+/* 타임라인 (실제 시각 비율) */
+.tl .card-body { overflow-x: auto; }
+.tl-inner { min-width: 720px; padding-inline: 56px; }
+.lane-label { font: var(--font-heading-xsmall); text-transform: uppercase; letter-spacing: var(--tracking-eyebrow); color: var(--color-text-subtle); margin-top: var(--space-300); }
+.lane-label:first-child { margin-top: 0; }
+.lane { position: relative; }
+.axis { position: relative; height: 26px; border-top: 2px solid var(--color-border); }
+.tick { position: absolute; top: 4px; transform: translateX(-50%); font: 400 12px/16px var(--font-mono); color: var(--color-text-subtle); }
+.ev { position: absolute; bottom: 6px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; width: 112px; font: var(--font-body-small); }
+.ev i { width: 12px; height: 12px; border-radius: var(--radius-full); background: var(--color-primary); display: block; margin-top: 4px; }
+.ev.etcd i { background: var(--color-success); }
+.ev.verify i { background: var(--color-warning); box-shadow: inset 0 0 0 1px #7f5f01; }
+.ev .t { font-family: var(--font-mono); color: var(--color-text-subtle); }
+.band { position: absolute; bottom: 0; height: 8px; border-radius: var(--radius-050); background: var(--color-B50); border: 1px solid var(--color-B400); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-300); margin-top: var(--space-200); font: var(--font-body-small); color: var(--color-text-subtle); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: var(--radius-full); margin-right: 6px; vertical-align: -1px; }
 
-/* Proof */
-.proof { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s4); margin-top: var(--s4); }
-.proof > div { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--s4); }
-ol.steps { list-style: none; counter-reset: s; margin: var(--s3) 0 0; padding: 0; display: grid; gap: 10px; }
-ol.steps li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: var(--s2); font-size: 15px; }
-ol.steps li::before { content: counter(s); font-family: var(--font-mono); font-size: 12px; font-weight: 600; width: 24px; height: 24px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
-ul.checks { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; gap: 8px; font-size: 15px; }
-ul.checks li { display: grid; grid-template-columns: 22px 1fr; gap: var(--s2); }
-ul.checks li::before { content: "✓"; color: var(--ok); font-weight: 700; }
-.result { margin-top: var(--s3); font-family: var(--font-mono); font-size: 13px; background: var(--ok-bg); color: var(--ok); padding: 8px 12px; border-radius: 6px; }
+/* 검증 */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-200); margin-top: var(--space-300); }
+ol.steps { list-style: none; counter-reset: s; margin: 0; padding: 0; display: grid; gap: 10px; font: var(--font-body); }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: var(--space-100); align-items: start; }
+ol.steps li::before { content: counter(s); font: 600 12px/22px var(--font-mono); width: 22px; height: 22px; border-radius: var(--radius-050); background: var(--color-B50); color: var(--color-B700); text-align: center; }
+ul.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font: var(--font-body); }
+ul.checks li { display: grid; grid-template-columns: 22px 1fr; gap: var(--space-100); align-items: start; }
+.result { margin-top: var(--space-200); display: flex; gap: var(--space-100); align-items: center; flex-wrap: wrap; font: var(--font-body-small); color: var(--color-text-subtle); }
 
-/* Features */
-.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s4) var(--s5); margin-top: var(--s4); }
+/* 기능 */
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-300) var(--space-500); margin-top: var(--space-300); }
 .features > div { min-width: 0; }
-.features h3 { font-size: 16px; }
-.features p { color: var(--muted); font-size: 15px; margin-top: 4px; }
+.features h3 { font: var(--font-heading-small); }
+.features p { color: var(--color-text-subtle); font: var(--font-body); margin-top: var(--space-050); }
 
-/* Specs */
-.specs { margin-top: var(--s4); display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 var(--s5); }
-.specs div { display: grid; grid-template-columns: 9em 1fr; gap: var(--s3); padding: 12px 0; border-top: 1px solid var(--line); font-size: 15px; min-width: 0; }
-.specs dt { color: var(--muted); }
+/* 사양 */
+.specs { margin: var(--space-300) 0 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 var(--space-500); }
+.specs div { display: grid; grid-template-columns: 9em 1fr; gap: var(--space-200); padding: 12px 0; border-top: 1px solid var(--color-divider); font: var(--font-body); min-width: 0; }
+.specs dt { color: var(--color-text-subtle); }
 .specs dd { margin: 0; }
 
-.closing { margin-block: var(--s6); padding: var(--s5) var(--s4); background: var(--board); color: var(--board-ink); border-radius: var(--radius); display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--s4); align-items: center; }
+/* 마무리 */
+.closing { margin-block: var(--space-800) var(--space-400); display: grid; grid-template-columns: 1.3fr 1fr; gap: var(--space-400); align-items: start; }
 .closing > * { min-width: 0; }
-.closing h2 { color: #fff; }
-.closing p { color: #a9b8cc; margin-top: var(--s2); }
-.docs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
-.docs li { display: flex; justify-content: space-between; gap: var(--s2); border-bottom: 1px solid var(--board-line); padding-bottom: 8px; }
-.docs code { font-family: var(--font-mono); color: #8fb4ff; font-size: 13px; }
-footer { color: var(--muted); font-size: 13px; padding-block: 0 var(--s5); }
+.docs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-100); font: var(--font-body); }
+.docs li { display: flex; justify-content: space-between; gap: var(--space-200); padding-bottom: var(--space-100); border-bottom: 1px solid var(--color-divider); }
+.docs code { font: 400 12px/16px var(--font-mono); color: var(--color-text-subtle); background: var(--color-N20); border-radius: var(--radius-050); padding: 1px 4px; }
+footer { display: flex; align-items: center; gap: var(--space-150); color: var(--color-text-subtle); font: var(--font-body-small); padding-block: 0 var(--space-500); }
+footer svg { height: 24px; width: auto; }
 
 @media (max-width: 860px) {
-  .hero, .proof, .closing { grid-template-columns: 1fr; }
-  .layers, .features { grid-template-columns: 1fr 1fr; }
+  .hero, .grid2, .closing { grid-template-columns: 1fr; }
+  .grid3, .features { grid-template-columns: 1fr 1fr; }
   .specs { grid-template-columns: 1fr; }
 }
 @media (max-width: 560px) {
-  .layers, .features { grid-template-columns: 1fr; }
-  .cmp-row { grid-template-columns: 1fr 1fr; padding: 12px var(--s3); }
-  .cmp-row > :first-child { grid-column: 1 / -1; font-weight: 600; }
-  .cmp-row:first-child > :first-child { display: none; }
+  .grid3, .features { grid-template-columns: 1fr; }
+  .trow { grid-template-columns: 1fr 1fr; padding: 12px var(--space-200); }
+  .trow > :first-child { grid-column: 1 / -1; font-weight: 600; }
+  .trow.head > :first-child { display: none; }
   .specs div { grid-template-columns: 1fr; gap: 2px; }
+  .card-head, .card-body { padding-left: var(--space-200); padding-right: var(--space-200); }
 }
 </style>
 
 <div class="wrap">
+  <div class="brandbar">
+    <span class="appicon" aria-hidden="true">
+      <!-- Osci mark (Osci Design System assets/Logos/osci-mark.svg) on the brand gradient -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Osci"><defs><clipPath id="osq"><rect width="120" height="120" rx="14"></rect></clipPath></defs><g clip-path="url(#osq)"><path d="M0 40 L120 60 L120 80 L0 60 Z" fill="rgba(70,164,246,0.35)"></path><path d="M0 80 L120 100 L120 120 L0 120 Z" fill="rgba(133,197,253,0.4)"></path><g transform="translate(22,12) scale(0.65)"><ellipse cx="48" cy="56" rx="36" ry="34" fill="#fff"></ellipse><circle cx="26" cy="62" r="5" fill="#FFC9D9" opacity="0.85"></circle><circle cx="70" cy="62" r="5" fill="#FFC9D9" opacity="0.85"></circle><ellipse cx="36" cy="52" rx="4" ry="5" fill="#142538"></ellipse><ellipse cx="60" cy="52" rx="4" ry="5" fill="#142538"></ellipse><circle cx="37.3" cy="50.5" r="1.4" fill="#fff"></circle><circle cx="61.3" cy="50.5" r="1.4" fill="#fff"></circle><path d="M44 64 Q48 68 52 64" fill="none" stroke="#142538" stroke-width="2.5" stroke-linecap="round"></path><g fill="#fff"><ellipse cx="24" cy="92" rx="6" ry="8"></ellipse><ellipse cx="40" cy="96" rx="6" ry="8"></ellipse><ellipse cx="56" cy="96" rx="6" ry="8"></ellipse><ellipse cx="72" cy="92" rx="6" ry="8"></ellipse></g><g transform="translate(46,2)"><path d="M0 12 C 2 4 8 0 12 0 C 11 4 12 8 11 12 C 9 16 4 16 0 12 Z" fill="#71D891"></path><path d="M2 11 C 4 7 8 5 10 4 C 9 7 7 10 4 12 Z" fill="#28AA78"></path></g></g></g></svg>
+    </span>
+    <div><div class="name">gimpo</div><div class="by">Kubernetes 백업 운영 대시보드 · Osci</div></div>
+  </div>
+
   <header class="hero">
     <div>
-      <div class="brand"><b>gimpo</b> Kubernetes 백업 운영 대시보드</div>
-      <h1>백업이 있는지가 아니라,<br><em>복구가 되는지</em>를 매일 증명합니다.</h1>
-      <p class="lede">앱 데이터·설정·클러스터 전체 상태를 세 겹으로 백업하고, 매일 밤 실제로 복구해 보며, 이상이 생기면 신호등처럼 알려 줍니다. 쿠버네티스 Velero 와 etcd 를 웹 하나로 운영합니다.</p>
-      <div class="pills"><span class="pill">매일 자동 복구 검증</span><span class="pill">etcd 롤백 절차서</span><span class="pill">한국 시간 스케줄</span></div>
+      <h1>백업이 있는지가 아니라,<br><b>복구가 되는지</b>를 매일 증명합니다</h1>
+      <p class="lede">앱 데이터, 설정, 클러스터 전체 상태를 세 겹으로 백업하고 매일 밤 실제로 복구해 봅니다. 문제가 생기면 상태 점검 화면이 바로 알려 줍니다. 쿠버네티스 Velero 와 etcd 를 웹 하나로 운영합니다.</p>
+      <div class="tags"><span class="loz info">매일 자동 복구 검증</span><span class="loz info">etcd 롤백 절차서</span><span class="loz info">한국 시간 스케줄</span></div>
     </div>
-    <div class="board" aria-label="상태 점검 화면 예시">
-      <div class="board-head"><strong>상태 점검 · 백업·복구 정상</strong><span class="lamp" aria-hidden="true"><i></i><i></i><i class="on-g"></i></span></div>
-      <div class="row"><span class="dot"></span><span>Velero 서버 · node-agent</span><small>8/8 노드</small></div>
-      <div class="row"><span class="dot"></span><span>저장 위치 MinIO · SeaweedFS</span><small>사용 가능</small></div>
-      <div class="row"><span class="dot"></span><span>앱 데이터 일일 백업</span><small>03:00 성공</small></div>
-      <div class="row"><span class="dot"></span><span>멈춘 볼륨 작업</span><small>없음</small></div>
-      <div class="row"><span class="dot"></span><span>자동 복구 테스트</span><small>05:00 · 28초</small></div>
-      <div class="row"><span class="dot"></span><span>etcd 스냅샷 · 멤버 3/3</span><small>126MB · 3초</small></div>
-      <div class="row"><span class="dot"></span><span>etcd 복원 연습</span><small>8/8 통과</small></div>
+    <div class="card shot" aria-label="상태 점검 화면 예시">
+      <div class="card-head"><strong>상태 점검</strong><span class="loz bold-done">정상 12</span></div>
+      <div class="card-body">
+        <div class="msg"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#6A9A23"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b style="font-weight:600">백업·복구 정상.</b> 어젯밤 백업과 복구 검증이 모두 끝났습니다.</div></div>
+        <div class="srow"><span>Velero 서버 · node-agent</span><small>8/8 노드</small><span class="loz done">정상</span></div>
+        <div class="srow"><span>저장 위치 MinIO · SeaweedFS</span><small>사용 가능</small><span class="loz done">정상</span></div>
+        <div class="srow"><span>앱 데이터 일일 백업</span><small>03:00</small><span class="loz done">성공</span></div>
+        <div class="srow"><span>멈춘 볼륨 작업</span><small>0건</small><span class="loz done">정상</span></div>
+        <div class="srow"><span>자동 복구 테스트</span><small>05:00 · 28초</small><span class="loz done">성공</span></div>
+        <div class="srow"><span>etcd 스냅샷 · 멤버 3/3</span><small>126MB · 3초</small><span class="loz done">성공</span></div>
+        <div class="srow"><span>etcd 복원 연습</span><small>05:30</small><span class="loz done">8/8 통과</span></div>
+      </div>
     </div>
   </header>
 
   <section aria-labelledby="why">
     <div class="eyebrow">Why</div>
-    <h2 id="why">문제는 백업 도구가 아니라 "보이지 않는 것"이었습니다</h2>
-    <p class="lede">도입 전 이 클러스터에서는 설정 오류로 몇 주간 모든 백업이 실패했고, 볼륨 백업 하나가 13일째 멈춰 뒤로 17건이 밀렸으며, 삭제 요청 79건이 쌓여 있었습니다. 아무도 몰랐습니다.</p>
-    <div class="compare" role="table" aria-label="도입 전후 비교">
-      <div class="cmp-row" role="row"><span>지표</span><span>도입 전</span><span>도입 후</span></div>
-      <div class="cmp-row" role="row"><span>정상 완료 백업</span><span class="before mono">0건</span><span class="after">매일 성공 · 오류 0</span></div>
-      <div class="cmp-row" role="row"><span>문제를 알기까지</span><span class="before">몇 주 (인지 못 함)</span><span class="after">1분 점검 · 멈춤 4시간 내 🔴</span></div>
-      <div class="cmp-row" role="row"><span>복구 가능성 확인</span><span class="before">없음</span><span class="after">매일 자동 (Velero · etcd)</span></div>
-      <div class="cmp-row" role="row"><span>etcd 백업</span><span class="before">없음</span><span class="after">6시간마다 · 매일 복원 검증</span></div>
-      <div class="cmp-row" role="row"><span>백업 저장소 사용률</span><span class="before mono">86%</span><span class="after mono">11%</span></div>
-      <div class="cmp-row" role="row"><span>앱 데이터 일일 백업</span><span class="before mono">26~48분</span><span class="after mono">24초</span></div>
-      <div class="cmp-row" role="row"><span>쌓인 완료 파드</span><span class="before mono">123개</span><span class="after">저장소당 1개</span></div>
+    <h2 id="why">문제는 백업 도구가 아니라 보이지 않는 것이었습니다</h2>
+    <p class="lede">도입 전 이 클러스터에서는 설정 오류로 몇 주간 모든 백업이 실패했습니다. 볼륨 백업 하나는 13일째 멈춰 뒤로 17건이 밀렸고, 처리되지 않은 삭제 요청이 79건 쌓여 있었습니다. 아무도 몰랐습니다.</p>
+    <div class="card table" role="table" aria-label="도입 전후 비교">
+      <div class="trow head" role="row"><span>지표</span><span>도입 전</span><span>도입 후</span></div>
+      <div class="trow" role="row"><span>정상 완료 백업</span><span class="before mono">0건</span><span class="after">매일 성공, 오류 0</span></div>
+      <div class="trow" role="row"><span>문제를 알기까지</span><span class="before">몇 주 (인지 못 함)</span><span class="after">1분 점검, 멈춤은 4시간 안에 경고</span></div>
+      <div class="trow" role="row"><span>복구 가능성 확인</span><span class="before">없음</span><span class="after">매일 자동 (Velero, etcd)</span></div>
+      <div class="trow" role="row"><span>etcd 백업</span><span class="before">없음</span><span class="after">6시간마다, 매일 복원 검증</span></div>
+      <div class="trow" role="row"><span>백업 저장소 사용률</span><span class="before mono">86%</span><span class="after mono">11%</span></div>
+      <div class="trow" role="row"><span>앱 데이터 일일 백업</span><span class="before mono">26~48분</span><span class="after mono">24초</span></div>
+      <div class="trow" role="row"><span>쌓인 완료 파드</span><span class="before mono">123개</span><span class="after">저장소당 1개</span></div>
     </div>
   </section>
 
   <section aria-labelledby="layers">
     <div class="eyebrow">Design</div>
     <h2 id="layers">세 겹 백업, 서로 다른 저장소</h2>
-    <p class="lede">설정과 데이터를 물리적으로 다른 저장소에 둡니다. 한쪽이 망가져도 다른 쪽이 남고, 앱 데이터 백업은 그 자체로 완결돼 복구가 한 번에 끝납니다.</p>
-    <div class="layers">
-      <div class="layer">
-        <span class="tag">LAYER · CONFIG</span>
-        <h3>설정 백업</h3>
-        <p>모든 네임스페이스의 리소스 정의(YAML). 설정 실수를 되돌릴 때.</p>
-        <dl><dt>주기</dt><dd>매일 03:30</dd><dt>보관</dt><dd>30일</dd><dt>저장소</dt><dd>MinIO</dd></dl>
+    <p class="lede">설정과 데이터를 물리적으로 다른 저장소에 둡니다. 한쪽이 망가져도 다른 쪽이 남습니다. 앱 데이터 백업은 그 자체로 완결돼 복구가 한 번에 끝납니다.</p>
+    <div class="grid3">
+      <div class="card layer">
+        <div class="card-head"><h3>설정 백업</h3><span class="loz info">Config</span></div>
+        <div class="card-body">
+          <p>모든 네임스페이스의 리소스 정의(YAML). 설정 실수를 되돌릴 때 씁니다.</p>
+          <dl><dt>주기</dt><dd>매일 03:30</dd><dt>보관</dt><dd>30일</dd><dt>저장소</dt><dd>MinIO</dd></dl>
+        </div>
       </div>
-      <div class="layer">
-        <span class="tag">LAYER · DATA</span>
-        <h3>데이터 백업</h3>
-        <p>PVC 안의 실제 데이터와 정의를 함께. DB·파일이 망가졌을 때.</p>
-        <dl><dt>주기</dt><dd>매일 03:00 (주요 앱) · 매월 2일 (전체)</dd><dt>보관</dt><dd>7일 · 35일</dd><dt>저장소</dt><dd>SeaweedFS</dd></dl>
+      <div class="card layer">
+        <div class="card-head"><h3>데이터 백업</h3><span class="loz info">Data</span></div>
+        <div class="card-body">
+          <p>PVC 안의 실제 데이터와 정의를 함께. DB나 파일이 망가졌을 때 씁니다.</p>
+          <dl><dt>주기</dt><dd>매일 03:00 (주요 앱), 매월 2일 (전체)</dd><dt>보관</dt><dd>7일, 35일</dd><dt>저장소</dt><dd>SeaweedFS</dd></dl>
+        </div>
       </div>
-      <div class="layer etcd">
-        <span class="tag">LAYER · CLUSTER STATE</span>
-        <h3>etcd 스냅샷</h3>
-        <p>쿠버네티스 전체 상태를 한 시점으로. 업그레이드 실패·대량 삭제 사고 때.</p>
-        <dl><dt>주기</dt><dd>6시간마다</dd><dt>보관</dt><dd>7일 · 최소 3개</dd><dt>저장소</dt><dd>SeaweedFS</dd></dl>
+      <div class="card layer">
+        <div class="card-head"><h3>etcd 스냅샷</h3><span class="loz done">Cluster</span></div>
+        <div class="card-body">
+          <p>쿠버네티스 전체 상태를 한 시점으로. 업그레이드 실패나 대량 삭제 사고 때 씁니다.</p>
+          <dl><dt>주기</dt><dd>6시간마다</dd><dt>보관</dt><dd>7일, 최소 3개</dd><dt>저장소</dt><dd>SeaweedFS</dd></dl>
+        </div>
       </div>
     </div>
   </section>
@@ -224,67 +249,70 @@ footer { color: var(--muted); font-size: 13px; padding-block: 0 var(--s5); }
     <div class="eyebrow">Every night · KST</div>
     <h2 id="night">매일 밤, 백업하고 복구해 봅니다</h2>
     <p class="lede">위쪽은 하루 24시간, 아래쪽은 가장 바쁜 02:00~06:00 를 넓혀 본 것입니다. 점의 위치는 실제 시각 비율 그대로입니다.</p>
-    <div class="tl">
-      <div class="tl-scroll">
+    <div class="card tl" style="margin-top:var(--space-300)">
+      <div class="card-body">
         <div class="tl-inner">
-          <div class="lane-label">하루 24시간 — etcd 스냅샷</div>
-          <div class="lane" style="height:70px">
-            <div class="ev etcd" style="left:0%"><b></b><span class="t">00:00</span></div>
-            <div class="ev etcd" style="left:25%"><b></b><span class="t">06:00</span></div>
-            <div class="ev etcd" style="left:50%"><b></b><span class="t">12:00</span></div>
-            <div class="ev etcd" style="left:75%"><b></b><span class="t">18:00</span></div>
-            <div aria-hidden="true" style="position:absolute;left:8.33%;width:16.67%;top:38px;height:8px;border-radius:4px;background:var(--accent-soft);border:1px solid var(--accent)"></div>
-            <span style="position:absolute;left:8.33%;top:48px;font-size:11px;color:var(--muted);font-family:var(--font-mono)">02~06시 ↓ 확대</span>
+          <div class="lane-label">하루 24시간 · etcd 스냅샷</div>
+          <div class="lane" style="height:58px">
+            <div class="ev etcd" style="left:0%"><span class="t">00:00</span><i></i></div>
+            <div class="ev etcd" style="left:25%"><span class="t">06:00</span><i></i></div>
+            <div class="ev etcd" style="left:50%"><span class="t">12:00</span><i></i></div>
+            <div class="ev etcd" style="left:75%"><span class="t">18:00</span><i></i></div>
+            <div class="band" style="left:8.333%;width:16.667%" title="02:00~06:00 확대 구간"></div>
           </div>
           <div class="axis">
-            <span class="tick" style="left:0%">0</span><span class="tick" style="left:25%">6</span><span class="tick" style="left:50%">12</span><span class="tick" style="left:75%">18</span><span class="tick" style="left:100%">24</span>
+            <span class="tick" style="left:0%">0</span><span class="tick" style="left:8.333%">2</span><span class="tick" style="left:25%">6</span><span class="tick" style="left:50%">12</span><span class="tick" style="left:75%">18</span><span class="tick" style="left:100%">24</span>
           </div>
 
-          <div class="lane-label" style="margin-top:28px">02:00 ~ 06:00 확대</div>
+          <div class="lane-label">02:00 ~ 06:00 확대</div>
           <!-- 위치 = (시각 - 2시) / 4시간 × 100% -->
-          <div class="lane" style="height:84px">
-            <div class="ev" style="left:12.5%"><b></b><span class="t">02:30</span><span>앱 DB 덤프</span></div>
-            <div class="ev" style="left:25%"><b></b><span class="t">03:00</span><span>앱 데이터 백업</span></div>
-            <div class="ev" style="left:37.5%"><b></b><span class="t">03:30</span><span>설정 백업</span></div>
-            <div class="ev verify" style="left:75%"><b></b><span class="t">05:00</span><span>복구 테스트</span></div>
-            <div class="ev etcd" style="left:87.5%;top:40px"><b></b><span class="t">05:30 · 복원 연습</span></div>
-            <div class="ev etcd" style="left:100%;top:10px"><b></b><span class="t">06:00</span><span>etcd 스냅샷</span></div>
+          <div class="lane" style="height:104px">
+            <div class="ev" style="left:12.5%"><span>앱 DB 덤프</span><span class="t">02:30</span><i></i></div>
+            <div class="ev" style="left:25%"><span>앱 데이터 백업</span><span class="t">03:00</span><i></i></div>
+            <div class="ev" style="left:37.5%"><span>설정 백업</span><span class="t">03:30</span><i></i></div>
+            <div class="ev verify" style="left:75%;bottom:46px"><span>복구 테스트</span><span class="t">05:00</span><i></i></div>
+            <div class="ev etcd" style="left:87.5%"><span>etcd 복원 연습</span><span class="t">05:30</span><i></i></div>
+            <div class="ev etcd" style="left:100%;bottom:46px"><span>etcd 스냅샷</span><span class="t">06:00</span><i></i></div>
           </div>
           <div class="axis">
             <span class="tick" style="left:0%">02:00</span><span class="tick" style="left:25%">03:00</span><span class="tick" style="left:50%">04:00</span><span class="tick" style="left:75%">05:00</span><span class="tick" style="left:100%">06:00</span>
           </div>
         </div>
+        <div class="legend"><span><i style="background:var(--color-primary)"></i>백업</span><span><i style="background:var(--color-warning);box-shadow:inset 0 0 0 1px #7f5f01"></i>Velero 복구 검증</span><span><i style="background:var(--color-success)"></i>etcd 스냅샷·복원 연습</span></div>
       </div>
-      <div class="legend"><span><i style="background:var(--accent)"></i>백업</span><span><i style="background:var(--warn)"></i>Velero 복구 검증</span><span><i style="background:var(--ok)"></i>etcd 스냅샷·복원 연습</span></div>
     </div>
   </section>
 
   <section aria-labelledby="proof">
     <div class="eyebrow">Proof</div>
-    <h2 id="proof">"복구된다"를 이렇게 확인합니다</h2>
-    <div class="proof">
-      <div>
-        <h3>Velero 자동 복구 테스트 · 매일 05:00</h3>
-        <ol class="steps">
-          <li>그날 날짜가 찍힌 Pod·디스크·설정·비밀 생성</li>
-          <li>데이터 저장소로 백업</li>
-          <li>전부 삭제해 장애 재현</li>
-          <li>백업에서 복구</li>
-          <li>설정·비밀·파일·1MiB 데이터 지문(sha256) 비교</li>
-          <li>복구된 디스크가 "새로 쓴 것"이 아닌지 확인 후 정리</li>
-        </ol>
-        <div class="result">✓ 실제 클러스터 · 전 단계 일치 · 28초</div>
+    <h2 id="proof">복구가 되는지 이렇게 확인합니다</h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h3>Velero 자동 복구 테스트</h3><span class="loz info">매일 05:00</span></div>
+        <div class="card-body">
+          <ol class="steps">
+            <li>그날 날짜가 찍힌 Pod, 디스크, 설정, 비밀 생성</li>
+            <li>데이터 저장소로 백업</li>
+            <li>전부 삭제해 장애 재현</li>
+            <li>백업에서 복구</li>
+            <li>설정, 비밀, 파일, 1MiB 데이터 지문(sha256) 비교</li>
+            <li>복구된 디스크가 새로 쓴 것이 아닌지 확인한 뒤 정리</li>
+          </ol>
+          <div class="result"><span class="loz bold-done">성공</span>실제 클러스터, 전 단계 일치, 28초</div>
+        </div>
       </div>
-      <div>
-        <h3>etcd 복원 연습 · 매일 05:30</h3>
-        <ul class="checks">
-          <li>내려받은 스냅샷 sha256 이 원본과 일치</li>
-          <li>스냅샷 해시 검증</li>
-          <li>임시 etcd 로 복원·기동 (운영 etcd 무접촉)</li>
-          <li>리비전 일치 · 핵심 키 존재 · 네임스페이스 수 일치</li>
-        </ul>
-        <div class="result">✓ 126MB 스냅샷 · 리비전 116,675,094 일치 · 8/8</div>
-        <p class="lede" style="margin-top:var(--s3);font-size:15px">스냅샷마다 이 클러스터 값이 채워진 <b>롤백 절차서</b>를 만들어 줍니다. 3노드 클러스터에서 그 명령 그대로 실행해, 사고 후 변경이 스냅샷 시점으로 정확히 돌아가는 것을 확인했습니다.</p>
+      <div class="card">
+        <div class="card-head"><h3>etcd 복원 연습</h3><span class="loz info">매일 05:30</span></div>
+        <div class="card-body">
+          <ul class="checks">
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#6A9A23"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>내려받은 스냅샷 sha256 이 원본과 일치</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#6A9A23"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>스냅샷 해시 검증</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#6A9A23"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>임시 etcd 로 복원·기동 (운영 etcd 는 건드리지 않음)</span></li>
+            <li><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#6A9A23"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>리비전 일치, 핵심 키 존재, 네임스페이스 수 일치</span></li>
+          </ul>
+          <div class="result"><span class="loz bold-done">8/8 통과</span>126MB 스냅샷, 리비전 116,675,094 일치</div>
+          <p class="lede" style="margin-top:var(--space-200);font:var(--font-body)">스냅샷마다 이 클러스터 값이 채워진 <b>롤백 절차서</b>를 만들어 줍니다. 3노드 클러스터에서 그 명령 그대로 실행해, 사고 후 변경이 스냅샷 시점으로 정확히 돌아가는 것을 확인했습니다.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -293,12 +321,12 @@ footer { color: var(--muted); font-size: 13px; padding-block: 0 var(--s5); }
     <div class="eyebrow">Features</div>
     <h2 id="features">운영하는 사람을 위한 기능</h2>
     <div class="features">
-      <div><h3>신호등 상태 점검</h3><p>서버·저장소·스케줄·멈춘 작업·복구 검증·etcd 를 1분마다. 예정 시각에 백업이 안 돌면 바로 빨간불.</p></div>
-      <div><h3>한국 시간 스케줄</h3><p>매일·매주·매월과 시각을 고르면 다음 실행 3회를 미리 보여 줍니다.</p></div>
+      <div><h3>한눈에 보는 상태 점검</h3><p>서버, 저장소, 스케줄, 멈춘 작업, 복구 검증, etcd 를 1분마다 점검합니다. 예정 시각에 백업이 안 돌면 바로 경고합니다.</p></div>
+      <div><h3>한국 시간 스케줄</h3><p>매일, 매주, 매월과 시각을 고르면 다음 실행 3회를 미리 보여 줍니다.</p></div>
       <div><h3>표시 이름과 이력</h3><p>알아보기 쉬운 이름을 붙이고, 이름을 바꿔도 과거 백업을 이어서 봅니다.</p></div>
       <div><h3>옆에 복구해 보기</h3><p>네임스페이스를 바꿔 원본 옆에 복구하고, 확인한 뒤 실제 복구합니다.</p></div>
-      <div><h3>etcd 롤백 절차서</h3><p>노드별 명령·확인 명령·되돌리기까지. 위험한 작업은 웹에서 실행하지 않습니다.</p></div>
-      <div><h3>로그인과 페이지 권한</h3><p>관리자만 실행·변경, 일반 사용자는 허용된 화면만 조회. 비밀 값은 어디에도 남기지 않습니다.</p></div>
+      <div><h3>etcd 롤백 절차서</h3><p>노드별 명령, 확인 명령, 되돌리기까지 담습니다. 위험한 작업은 웹에서 실행하지 않습니다.</p></div>
+      <div><h3>로그인과 페이지 권한</h3><p>관리자만 실행하고 변경합니다. 일반 사용자는 허용된 화면만 조회합니다. 비밀 값은 어디에도 남기지 않습니다.</p></div>
     </div>
   </section>
 
@@ -307,27 +335,35 @@ footer { color: var(--muted); font-size: 13px; padding-block: 0 var(--s5); }
     <h2 id="specs">사양</h2>
     <dl class="specs">
       <div><dt>대상</dt><dd>Kubernetes 1.27+ (검증 1.34)</dd></div>
-      <div><dt>백업 엔진</dt><dd>Velero 1.18 · kopia 파일 백업</dd></div>
-      <div><dt>etcd</dt><dd>3.5 · Kubespray systemd 방식</dd></div>
+      <div><dt>백업 엔진</dt><dd>Velero 1.18, kopia 파일 백업</dd></div>
+      <div><dt>etcd</dt><dd>3.5, Kubespray systemd 방식</dd></div>
       <div><dt>저장소</dt><dd>S3 호환 1~2곳 (설정·데이터 분리 권장)</dd></div>
-      <div><dt>구성</dt><dd>단일 컨테이너 · 외부 이미지 의존 없음</dd></div>
-      <div><dt>배포</dt><dd>kustomize · ArgoCD GitOps</dd></div>
-      <div><dt>기술</dt><dd>Node.js · Fastify · Vue 3 · Element Plus</dd></div>
-      <div><dt>권한 모델</dt><dd>최소 권한 RBAC · 관리자/조회 역할</dd></div>
+      <div><dt>구성</dt><dd>단일 컨테이너, 외부 이미지 의존 없음</dd></div>
+      <div><dt>배포</dt><dd>kustomize, ArgoCD GitOps</dd></div>
+      <div><dt>기술</dt><dd>Node.js, Fastify, Vue 3, Element Plus</dd></div>
+      <div><dt>권한 모델</dt><dd>최소 권한 RBAC, 관리자·조회 역할</dd></div>
     </dl>
   </section>
 
   <div class="closing">
-    <div>
-      <h2>아침에 배너 하나만 보면 됩니다</h2>
-      <p>🟢 이면 어젯밤 백업과 복구 검증이 모두 끝난 것입니다. 노란불·빨간불이면 무엇이 왜 문제인지 한 줄로 알려 줍니다.</p>
+    <div class="card">
+      <div class="card-head"><h3>아침에는 상태 점검 하나만 보면 됩니다</h3><span class="loz bold-done">정상</span></div>
+      <div class="card-body"><p style="font:var(--font-body);color:var(--color-text-subtle)">정상이면 어젯밤 백업과 복구 검증이 모두 끝난 것입니다. 경고가 있으면 무엇이 왜 문제인지 한 줄로 알려 줍니다.</p></div>
     </div>
-    <ul class="docs" aria-label="함께 제공되는 문서">
-      <li><span>상세 설명서</span><code>docs/PRODUCT_DETAIL.md</code></li>
-      <li><span>기술 설명서</span><code>docs/TECHNICAL_SPEC.md</code></li>
-      <li><span>사용 설명서</span><code>docs/USER_GUIDE.md</code></li>
-      <li><span>운영 매뉴얼</span><code>docs/OPERATIONS_MANUAL.md</code></li>
-    </ul>
+    <div class="card">
+      <div class="card-head"><h3>함께 제공되는 문서</h3></div>
+      <div class="card-body">
+        <ul class="docs">
+          <li><span>상세 설명서</span><code>docs/PRODUCT_DETAIL.md</code></li>
+          <li><span>기술 설명서</span><code>docs/TECHNICAL_SPEC.md</code></li>
+          <li><span>사용 설명서</span><code>docs/USER_GUIDE.md</code></li>
+          <li><span>운영 매뉴얼</span><code>docs/OPERATIONS_MANUAL.md</code></li>
+        </ul>
+      </div>
+    </div>
   </div>
-  <footer>gimpo 0.4.0 · 수치는 실제 운영 중인 랩 클러스터에서 측정한 값입니다.</footer>
+
+  <footer>
+    <span>gimpo 0.4.0 · Osci · 수치는 실제 운영 중인 랩 클러스터에서 측정한 값입니다.</span>
+  </footer>
 </div>
